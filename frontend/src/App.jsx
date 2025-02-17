@@ -3,21 +3,33 @@ import './App.css';
 
 function SearchBar() {
     return (
-        <div class="topnav">
-            <input type="text" placeholder="Game Name + "></input>
-      </div>
+        <div className = "search-container">
+          
+            <form class = "region-dropdown" >
+              <select name = "region-tag">
+                <option value="NA1">NA</option>
+                <option value="EUW1">EUW</option>
+                <option value="EUNE1">EUN</option>
+                <option value="KR">KR</option>
+                <option value="JP1">JP</option>
+                <option value="OC1">OCE</option>
+                <option value="OC1">VN</option>
+              </select>
+            </form>
+            <div></div>
+            <input type="text" name = "search" placeholder="Game Name + " size = "50" className="search-bar"></input>
+        </div>
+      
     );
   }
 
 function App() {
   return (
-    <div className="App">
-      <header className="App-header">
-        <p>
+    <div className = "search-main">
+        <h1>
           Teemo.gg
-        </p>
+        </h1>
         <SearchBar />
-      </header>
     </div>
   );
 }

@@ -1,27 +1,8 @@
-.App {
-  text-align: center;
+body{
+  background: no-repeat  center url(../public/ina-wong-xayah-done-comp2000.jpg);
+  background-repeat: no-repeat;
+  background-size: cover;
+
 }
 
-.App-header {
-  background-color: rgb(204, 17, 142);
-  min-height: 100vh;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  font-size: calc(10px + 2vmin);
-  color: white;
-}
 
-.App-link {
-  color: #61dafb;
-}
-
-@keyframes App-logo-spin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
-}

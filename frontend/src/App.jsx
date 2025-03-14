@@ -1,23 +1,13 @@
 import './App.css';
-
-
-function SearchBar() {
-    return (
-        <div class="topnav">
-            <input type="text" placeholder="Game Name + "></input>
-      </div>
-    );
-  }
+import SearchBar from './SearchBar';
 
 function App() {
   return (
-    <div className="App">
-      <header className="App-header">
-        <p>
+    <div className = "search-main">
+        <h1>
           Teemo.gg
-        </p>
+        </h1>
         <SearchBar />
-      </header>
     </div>
   );
 }

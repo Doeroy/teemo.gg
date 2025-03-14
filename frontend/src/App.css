@@ -1,34 +1,8 @@
-.search-main{
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-  height: 100vh;
-}
+body{
+  background: no-repeat  center url(../public/ina-wong-xayah-done-comp2000.jpg);
+  background-repeat: no-repeat;
+  background-size: cover;
 
-
-.search-container {
-  position: relative;
-  display: flex;
-  justify-content: center;
-  width: 700px;
-}
-
-.region-dropdown{
-  width: 200px;
-  position: absolute;
-  left: 75px;
-  top: 50%;
-  transform: translateY(-50%);
-  border-radius: 15px;
-  height: 15px;
-}
-
-.search-bar{
-  text-align: center;
-  border-radius: 15px;
-  padding: 5px;
-  font-size: 20px;
 }
 
 

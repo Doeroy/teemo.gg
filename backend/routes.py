@@ -1,5 +1,5 @@
 from flask import Blueprint
-from database import db
+from extend import db
 from models import User
 
 app_routes = Blueprint('app_routes', __name__)

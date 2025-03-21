@@ -28,9 +28,9 @@ db.init_app(app)
 def test_db():
     try:
         db.session.execute(text('SELECT 1'))
-        return "✅ Database connected successfully!"
+        return "Database connected successfully!"
     except Exception as e:
-        return f"❌ Database connection failed: {str(e)}"
+        return f"Database connection failed: {str(e)}"
     
 
 # Route to add a summoner profile (generalized)
@@ -40,7 +40,7 @@ def add_summoner():
         data = request.get_json()  # Get the data from the request body
         # Ensure that the required fields are present
         if not all(key in data for key in ['summonerID', 'riot_id', 'riot_tag', 'puuid', 'reigon']):
-            return jsonify({"error": "❌ Missing data in request!"}), 400
+            return jsonify({"error": "Missing data in request!"}), 400
 
         # Assuming your SummonerProfile model is set up correctly
         new_summoner = SummonerProfile(
@@ -54,10 +54,10 @@ def add_summoner():
         db.session.add(new_summoner)
         db.session.commit()
 
-        return jsonify({"message": "✅ Summoner added successfully!"}), 200
+        return jsonify({"message": "Summoner added successfully!"}), 200
     except Exception as e:
         db.session.rollback()
-        return jsonify({"error": f"❌ Failed to add summoner: {str(e)}"}), 400
+        return jsonify({"error": f"Failed to add summoner: {str(e)}"}), 400
 
 
 # Route to fetch all summoners (just for testing)

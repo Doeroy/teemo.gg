@@ -1,6 +1,15 @@
 import './SearchBar.css';
-
+import React, {useState} from 'react'
 export default function SearchBar() {
+    const [searchText, setSearchText] = useState("");
+    //[isLoading, setIsLoading] = useState(false);
+
+    //const onSearch = async () => {
+        // Make request with search text
+        /*
+        response = axios.get(api_url, searchText);
+        do something with response. 
+        */
     return (
         <div className = "search-container">
           

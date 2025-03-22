@@ -1,0 +1,125 @@
+# Flask API Documentation
+
+## Overview
+
+This API allows users to interact with the Summoner Profile database. It supports adding new summoner profiles, retrieving all stored summoners, and testing the database connection.
+
+## Running the Server
+
+### 1. Activate Virtual Environment (if applicable)
+
+```
+# Windows
+venv\Scripts\activate
+
+# macOS/Linux
+source venv/bin/activate
+```
+
+### 2. Set Flask Environment Variables
+
+```
+# Windows (Powershell)
+$env:FLASK_APP = "app.py"
+$env:FLASK_ENV = "development"
+
+# macOS/Linux
+export FLASK_APP=app.py
+export FLASK_ENV=development
+```
+
+### 3. Run the Server
+
+```
+flask run
+```
+
+---
+
+## API Endpoints
+
+### Test Database Connection
+
+**Endpoint:** `GET /test_db`
+
+**Description:**
+Checks if the database connection is successful.
+
+**Response:**
+
+- ✅ Database connected successfully!
+- ❌ Database connection failed: [Error Message]
+
+---
+
+### ------------------------------------------------------------------------------------
+
+Add a Summoner Profile
+
+**Endpoint:** `POST /add_summoner`
+
+**Description:**
+Adds a new summoner profile to the database.
+
+**Request Body (JSON):**
+
+```
+{
+    "summonerID": "Summoner123",
+    "riot_id": "PlayerX",
+    "riot_tag": "NA1",
+    "puuid": "abcd-1234-xyz",
+    "reigon": "NA"
+}
+```
+
+**Response:**
+
+- ✅ Summoner added successfully!
+- ❌ Failed to add summoner: [Error Message]
+- ❌ Missing data in request!
+
+---
+
+### -------------------------------------------------------------------------
+Get All Summoner Profiles
+
+**Endpoint:** `GET /summoners`
+
+**Description:**
+Retrieves all summoner profiles stored in the database.
+
+**Response (JSON):**
+
+```
+[
+    {
+        "summonerID": "Summoner123",
+        "riot_id": "PlayerX",
+        "riot_tag": "NA1",
+        "puuid": "abcd-1234-xyz",
+        "reigon": "NA"
+    },
+    ...
+]
+```
+
+**Error Handling:**
+
+- `{ "error": "[Error Message]" }` in case of failure.
+
+---
+
+
+
+
+## Notes
+
+- Ensure the database is set up correctly before running the server.
+- If using a `.env` file, ensure it contains the required database credentials.
+- If encountering import errors, verify `FLASK_APP` is correctly set and that the dependencies are installed.
+
+---
+
+End of Documentation.
+

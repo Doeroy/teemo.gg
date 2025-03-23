@@ -20,6 +20,7 @@ export default function SearchBar() {
           alert(searchText)
         }
     }
+
     return (
         <div className = "search-container">
           
@@ -34,7 +35,7 @@ export default function SearchBar() {
                 <option value="OC1">VN</option>
               </select>
             </form> 
-            <input type="text" name = "search" onKeyDown = {isEnter} onChange = {textInput} placeholder= "Game Name + " size = "50" className="search-bar"></input>
+            <input type="text" value = {searchText} name = "search" onKeyDown = {isEnter} onChange = {textInput} placeholder= "Game Name + " size = "50" className="search-bar"></input>
         </div>
       
     );

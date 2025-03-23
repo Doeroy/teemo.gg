@@ -8,7 +8,7 @@ data = {
     "riot_id": "PlayerC",
     "riot_tag": "NA1",
     "puuid": "abcd-1234-2est",
-    "reigon": "NA"
+    "region": "NA"
 }
 
 response = requests.post(url, headers=headers, json=data)

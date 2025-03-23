@@ -9,7 +9,7 @@ with app.app_context():
             riot_id="PlayerX",
             riot_tag="NA1",
             puuid="abcd-1234-xyz",
-            reigon="NA"
+            region="NA"
         )
 
         db.session.add(new_summoner)

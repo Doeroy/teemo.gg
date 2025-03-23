@@ -5,12 +5,21 @@ from dotenv import load_dotenv
 from models import SummonerProfile
 from sqlalchemy import text
 from extend import db
+from flask_cors import CORS 
+
+"""
+React runs on localhost:3000 and Flask runs on localhost:5000 so our browser will block
+requests across different origins. Lines "from flask_cors import CORS" 
+and CORS(app, origins=["http://localhost:3000"]) tell flask that its okay to accept request from other
+origins
+"""
 
 # Load environment variables from .env file
 load_dotenv()
-
+print("🧪 DB_HOST =", os.getenv("DB_HOST"))
 # Initialize Flask app
 app = Flask(__name__)
+CORS(app, origins=["http://localhost:3000"])
 
 # Set up the database URI
 app.config['SQLALCHEMY_DATABASE_URI'] = (
@@ -39,7 +48,7 @@ def add_summoner():
     try:
         data = request.get_json()  # Get the data from the request body
         # Ensure that the required fields are present
-        if not all(key in data for key in ['summonerID', 'riot_id', 'riot_tag', 'puuid', 'reigon']):
+        if not all(key in data for key in ['summonerID', 'riot_id', 'riot_tag', 'puuid', 'region']):
             return jsonify({"error": "Missing data in request!"}), 400
 
         # Assuming your SummonerProfile model is set up correctly
@@ -48,7 +57,7 @@ def add_summoner():
             riot_id=data['riot_id'],
             riot_tag=data['riot_tag'],
             puuid=data['puuid'],
-            reigon=data['reigon']
+            region=data['region']
         )
 
         db.session.add(new_summoner)
@@ -65,8 +74,10 @@ def add_summoner():
 def get_summoners():
     try:
         summoners = SummonerProfile.query.all()  # Fetch all summoners from the database
+        print("Retrieved summoners:", summoners)
         return jsonify([summoner.to_dict() for summoner in summoners])  # Convert each to dict and return as JSON
     except Exception as e:
+        print("/summoners error:", e)
         return jsonify({"error": str(e)}), 500  # Return the error message if something goes wrong
 
 

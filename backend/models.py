@@ -8,7 +8,7 @@ class SummonerProfile(db.Model):
     riot_id = db.Column(db.String(45), nullable=False)
     riot_tag = db.Column(db.String(45), nullable=False)
     puuid = db.Column(db.String(45), unique=True, nullable=False)
-    reigon = db.Column(db.String(45), nullable=False)
+    region = db.Column(db.String(45), nullable=False)
 
     def to_dict(self):
         return {
@@ -16,7 +16,7 @@ class SummonerProfile(db.Model):
             'riot_id': self.riot_id,
             'riot_tag': self.riot_tag,
             'puuid': self.puuid,
-            'reigon': self.reigon
+            'region': self.region
         }
 
 

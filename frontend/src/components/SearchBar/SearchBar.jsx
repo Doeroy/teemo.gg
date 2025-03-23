@@ -10,6 +10,16 @@ export default function SearchBar() {
         response = axios.get(api_url, searchText);
         do something with response. 
         */
+    
+    function textInput(e){
+        setSearchText(e.target.value);
+    }
+
+    function isEnter(event){
+        if(event.key == "Enter"){
+          alert(searchText)
+        }
+    }
     return (
         <div className = "search-container">
           
@@ -23,9 +33,8 @@ export default function SearchBar() {
                 <option value="OC1">OCE</option>
                 <option value="OC1">VN</option>
               </select>
-            </form>
-            <div></div>
-            <input type="text" name = "search" placeholder="Game Name + " size = "50" className="search-bar"></input>
+            </form> 
+            <input type="text" name = "search" onKeyDown = {isEnter} onChange = {textInput} placeholder= "Game Name + " size = "50" className="search-bar"></input>
         </div>
       
     );

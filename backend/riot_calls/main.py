@@ -17,30 +17,47 @@ def get_puuid(gameName=None, tagLine=None, region='americas'):
     """ Gets a puuid from either summonerId or riot id + tag. Returns a str of the puuid
 
         Args:   
-            summonerId (str; optional) - Summoner ID, None by default
+            
             gameName (str; optional) - Riot ID, None by default
             tagLine (str; optional) - Riot Tag, None by default
             region (str; optional) - Summoner ID, americas by default
     """
-
-    #if summonerId is not None:
-    #    root_url = f'https://{region}.api.riotgames.com/'
-    #    endpoint = 'lol/summoner/v4/summoners/'
-        
-    #    print(root_url + endpoint + summonerId + '?api_key='+ api_key)
-    #    response = requests.get(root_url + endpoint + summonerId + '?api_key='+ api_key)
-
-    #    return response.json()['puuid']
     
-    #else:
-    summonerId=None
 
-    root_url = f'https://{region}.api.riotgames.com/'
-    endpoint = f'riot/account/v1/accounts/by-riot-id/{gameName}/{tagLine}'
+    url = f"https://{region}.api.riotgames.com/riot/account/v1/accounts/by-riot-id/{gameName}/{tagLine}?api_key={api_key}"
 
-    response = requests.get(root_url + endpoint + summonerId + '?api_key='+ api_key)
+    response = requests.get(url)
 
-    return response.json()['puuid']
+    if response.status_code == 200:
+        return response.json().get('puuid', None)
+    
+    else:
+        print(f"Error: {response.status_code}, {response.text}")
+        return None
+    
+
+
+def get_summoner_id_from_puuid(puuid, region='na1'):
+    """
+    Fetches the Summoner ID from a given PUUID.
+
+    Args:
+        puuid (str): The player's PUUID.
+        region (str): The Riot API region (default: na1).
+
+    Returns:
+        str: The Summoner ID if found, otherwise None.
+    """
+
+    url = f"https://{region}.api.riotgames.com/lol/summoner/v4/summoners/by-puuid/{puuid}?api_key={api_key}"
+    
+    response = requests.get(url)
+
+    if response.status_code == 200:
+        return response.json().get('id', None)  # 'id' is the Summoner ID
+    else:
+        print(f"Error: {response.status_code}, {response.text}")
+        return None
     
 
 

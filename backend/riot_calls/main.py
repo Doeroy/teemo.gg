@@ -58,8 +58,8 @@ def get_summoner_id_from_puuid(puuid, region='na1'):
     else:
         print(f"Error: {response.status_code}, {response.text}")
         return None
-    
-data = requests.get_json()  # 🔥 This turns the JSON into a Python dict
+ 
+data = requests.get_json()  # This turns the JSON into a Python dict
 
 summonerID = data.get("summonerID")
 riot_tag = data.get("riot_tag")

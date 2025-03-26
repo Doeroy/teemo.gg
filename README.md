@@ -1,7 +1,7 @@
 ## 🌟 Teemo.GG
 Teemo.gg is a full-stack web application made to display detailed League of Legends player statistics and facilitate real-time messaging between users.
 ## 📘 About the Project
-Teemo.gg is a full-stack web application designed to display detailed League of Legends player statistics and support real-time messaging between users. Built collaboratively, the platform showcases our ability to integrate third-party APIs, manage stateful front-end architecture, and implement scalable backend systems. The project demonstrates strong full-stack development skills, including API handling, real-time communication, and database management.
+Teemo.gg is a full-stack web application designed to display detailed League of Legends player statistics and support real-time messaging between users. Built collaboratively, the platform showcases our ability to integrate third-party APIs, manage stateful front-end architecture, and implement scalable back-end systems. The project demonstrates strong full-stack development skills, including API handling, real-time communication, and database management.
 ## 🛠️ Tech Stack
 Frontend: React, HTML, CSS, JavaScript
 
@@ -15,3 +15,12 @@ Other Tools: Axios, WebSockets
 ### 👥 Creators
 - [Hai Le](https://github.com/Doeroy) – Frontend development, API integration, backend development, real-time messaging  
 - [Daniel Asiamah](https://github.com/dasiamah308) – Backend development, database design, front-end components, deployment
+## How to Run Locally
+1. Front-end Setup
+  - Install dependencies: npm install
+  - Run the frontend: npm start
+2. Back-end Setup
+  - Create a virtual environment: python -m venv venv
+  - Activate the virtual environment: venv\Scripts\activate
+  - Install dependencies: pip install -r requirements.txt
+  - Run the backend: flask run

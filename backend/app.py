@@ -6,6 +6,7 @@ from models import SummonerProfile
 from sqlalchemy import text
 from extend import db
 from flask_cors import CORS 
+from riot_calls.main import get_puuid, get_summoner_id_from_puuid
 
 """
 React runs on localhost:3000 and Flask runs on localhost:5000 so our browser will block
@@ -41,10 +42,26 @@ def test_db():
     except Exception as e:
         return f"Database connection failed: {str(e)}"
     
+@app.route('/search', methods=['POST'])
+def search():
+    data = request.get_json()
+    summoner_name = data['summonerID']
+    tag_line = data['riot_tag']
+    region = data['region']
+    print(summoner_name, tag_line)
+    puuid = get_puuid(gameName=summoner_name, tagLine=tag_line)
+    print(puuid)
+    return jsonify({'summonerID': get_summoner_id_from_puuid(puuid),
+            'riot_id': summoner_name,
+            'riot_tag': tag_line,
+            'puuid=data': puuid,
+            'region=data': region
+        })
 
 # Route to add a summoner profile (generalized)
 @app.route('/add_summoner', methods=['POST'])
 def add_summoner():
+
     try:
         data = request.get_json()  # Get the data from the request body
         # Ensure that the required fields are present

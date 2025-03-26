@@ -84,7 +84,7 @@ def add_summoner():
         db.session.rollback()
         return jsonify({"error": f"Failed to add summoner: {str(e)}"}), 400
     
-
+'''
 @app.route('/search_and_add_summoner', methods=['POST'])
 def search_and_add_summoner():
     try:
@@ -116,6 +116,7 @@ def search_and_add_summoner():
     except Exception as e:
         db.session.rollback()
         return jsonify({"error": f"Failed to add summoner: {str(e)}"}), 400
+'''
 
 
 

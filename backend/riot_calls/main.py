@@ -69,4 +69,6 @@ region = data.get("region")
 
 print("Received from frontend:", summonerID, riot_tag, region)
 '''
+bruh = get_puuid("doeroy", "NA1")
+print(bruh)
 

@@ -19,7 +19,7 @@ Other Tools: Axios, WebSockets
 1. Front-end Setup
     - Install dependencies:
       ```bash
-       npm install
+      npm install
       ```
     - Run the frontend:
       ```bash
@@ -28,7 +28,7 @@ Other Tools: Axios, WebSockets
 2. Back-end Setup
     - Create a virtual environment:
       ```bash
-        python -m venv venv
+      python -m venv venv
       ```
     - Activate the virtual environment:
     - ```bash

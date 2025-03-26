@@ -31,14 +31,14 @@ Other Tools: Axios, WebSockets
       python -m venv venv
       ```
     - Activate the virtual environment:
-     ```bash
+      ```bash
       venv\Scripts\activate
       ```
     - Install dependencies:
-     ```bash
+      ```bash
       pip install -r requirements.txt
       ```
     - Run the backend:
-     ```bash
+      ```bash
       flask run
       ```

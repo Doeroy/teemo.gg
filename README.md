@@ -17,10 +17,10 @@ Other Tools: Axios, WebSockets
 - [Daniel Asiamah](https://github.com/dasiamah308) – Back-end development, database design, front-end components, deployment
 ## How to Run Locally
 1. Front-end Setup
-    - ```Install dependencies: npm install
-    - ```Run the frontend: npm start
+    - ```bash Install dependencies: npm install
+    - ```bash Run the frontend: npm start
 2. Back-end Setup
-    - ```Create a virtual environment: python -m venv venv
-    - ```Activate the virtual environment: venv\Scripts\activate
-    - ```Install dependencies: pip install -r requirements.txt
-    - ```Run the backend: flask run
+    - ```bash Create a virtual environment: python -m venv venv
+    - ```bash Activate the virtual environment: venv\Scripts\activate
+    - ```bash Install dependencies: pip install -r requirements.txt
+    - ```bash Run the backend: flask run

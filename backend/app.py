@@ -89,45 +89,45 @@ def add_summoner():
 def search_and_add_summoner():
     try:
         data = request.get_json()
+        print("💥 Incoming data:", data)
+        print("🧪 Keys present:", list(data.keys()))
+
+        # Validate required fields
+        if not all(key in data for key in ['summonerID', 'riot_id', 'riot_tag', 'puuid', 'region']):
+            return jsonify({"error": "Missing data in request!"}), 400
+
         summoner_name = data['summonerID']
+        riot_id = data['riot_id']
         tag_line = data['riot_tag']
+        real_puuid = get_puuid(gameName=summoner_name, tagLine = tag_line)
         region = data['region']
 
-        # Step 1: Get the puuid and summoner ID from Riot API
-        puuid = get_puuid(gameName=summoner_name, tagLine=tag_line)
-        if not puuid:
-            return jsonify({"error": "Failed to retrieve PUUID"}), 400
-
-        summoner_id = get_summoner_id_from_puuid(puuid)
-        if not summoner_id:
-            return jsonify({"error": "Failed to retrieve Summoner ID"}), 400
-
-        # Step 2: Store the summoner in the database
+        # Create a new SummonerProfile
         new_summoner = SummonerProfile(
-            summonerID=summoner_id,
-            riot_id=summoner_name,
+            summonerID=summoner_name,
+            riot_id=riot_id,
             riot_tag=tag_line,
-            puuid=puuid,
+            puuid=real_puuid,
             region=region
         )
 
         db.session.add(new_summoner)
         db.session.commit()
+        print("✅ Summoner added!")
 
         return jsonify({
             "message": "Summoner added successfully!",
-            "summonerID": summoner_id,
-            "riot_id": summoner_name,
+            "summonerID": summoner_name,
+            "riot_id": riot_id,
             "riot_tag": tag_line,
-            "puuid": puuid,
+            "puuid": real_puuid,
             "region": region
         }), 200
 
     except Exception as e:
         db.session.rollback()
+        print("❌ Error:", e)
         return jsonify({"error": f"Failed to add summoner: {str(e)}"}), 400
-
-
 
 
 # Route to fetch all summoners (just for testing)

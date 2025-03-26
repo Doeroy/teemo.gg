@@ -3,12 +3,11 @@ from extend import db  # Import db from extensions
 
 class SummonerProfile(db.Model):
     __tablename__ = 'summoner_prof_test1'  # Make sure this matches your table name
-
-    summonerID = db.Column(db.String(50), primary_key=True)
-    riot_id = db.Column(db.String(45), nullable=False)
-    riot_tag = db.Column(db.String(45), nullable=False)
-    puuid = db.Column(db.String(45), unique=True, nullable=False)
-    region = db.Column(db.String(45), nullable=False)
+    summonerID = db.Column(db.String(50))
+    riot_id = db.Column(db.String(50))
+    riot_tag = db.Column(db.String(10))
+    puuid = db.Column(db.String(100), primary_key=True)
+    region = db.Column(db.String(10))
 
     def to_dict(self):
         return {

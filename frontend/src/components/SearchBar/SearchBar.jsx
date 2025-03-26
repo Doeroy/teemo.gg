@@ -25,7 +25,7 @@ function  isAlphanumeric(str){
 
 const createPost = async () => {
   try{
-    await axios.post("http://localhost:5000/search", riotInfo);
+    await axios.post("http://localhost:5000/search_and_add_summoner", riotInfo);
   }catch(e){
     if(e.response){
       console.error(`Response error: ${e.response}`)
@@ -38,28 +38,29 @@ const createPost = async () => {
 
 const riotInfo = {
   summonerID: searchText,
-  riotID: "",
+  riot_id: "",
   riot_tag: "",
   region: "",
+  puuid: ""
 };
     
 const fetchData = async (value) => {
   try{
-    createPost()
+    let userFound = false;
+    createPost() 
+    /*
+      need to add an if statement to see if the user is already 
+    */
     const response = await fetch("http://localhost:5000/summoners"); //makes a call to summoners endpoint
     if (response.ok){ //if the respose status is in the range 200-299 response.ok returns true. Else False  
       const data = await response.json(); //converts response to json
       console.log(riotInfo)
       console.log(data)
-      //console.log(`summoner: ${riotInfo.summonerID} region: ${riotInfo.riot_tag}`);
-      for(let i = 0; i < data.length; i++){
-        //console.log(`region: ${data[i].riot_tag}`);
-        if((value.target.value === data[i].summonerID) && data[i].riot_tag === region){
-          console.log(`Found Summoner: ${value.target.value} Region: ${data[i].region}`);
-          //change this to have it recieve a call from the backend
-        }
-      }
-    } 
+      userFound = true;
+    }
+    else if(!userFound){
+      console.log('ballsack')
+    }
     else {
       throw new Error('Response was not between 200-299'); //if the response was not a 200 then we throw an error
     }
@@ -74,12 +75,15 @@ function isEnter(event){
       riotInfo.summonerID = splitId[0];
       riotInfo.riot_tag = splitId[1];
       riotInfo.region = region;
-      riotInfo.riotID = `${riotInfo.summonerID}#${riotInfo.riot_tag}`
+      riotInfo.riot_id = `${riotInfo.summonerID}#${riotInfo.riot_tag}`
+      riotInfo.puuid = "balls" // temporary dummy value
       if(!isAlphanumeric(riotInfo.summonerID) || riotInfo.summonerID.length < 3  || riotInfo.summonerID.length > 16){
         alert("Summoner ID (Game Name) must be between 3-16 alphanumeric characters");
+        return;
       }
       if(!isAlphanumeric(riotInfo.riot_tag) || riotInfo.riot_tag.length < 3 || riotInfo.riot_tag.length > 5){
         alert("Tagline must be between 3-5 alphanumeric characters");
+        return;
       }
       else{
         fetchData(event)

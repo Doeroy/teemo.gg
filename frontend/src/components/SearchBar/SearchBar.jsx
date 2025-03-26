@@ -15,78 +15,77 @@ export default function SearchBar() {
         do something with response. 
         */
     
-    function handleChange(value){
-        setSearchText(value);
-    }
+function handleChange(value){
+    setSearchText(value);
+}
 
-    function  isAlphanumeric(str){ 
-      return /^[a-z0-9]+$/i.test(str);
-    }
-    const riotInfo = {
-          summonerID: searchText,
-          riotID: "",
-          riot_tag: "",
-          region: "",
-        };
+function  isAlphanumeric(str){ 
+  return /^[a-z0-9]+$/i.test(str);
+}
 
-    const fetchData = async (value) => {
-      try{
-        const response = await fetch("http://localhost:5000/summoners"); //makes a call to summoners endpoint
-        if (response.ok){ //if the respose status is in the range 200-299 response.ok returns true. Else False  
-          const data = await response.json(); //converts response to json
-          let userFound = false;
-          const splitId = searchText.split('#').map(i => i.trim());
-          riotInfo.summonerID = splitId[0];
-          riotInfo.riot_tag = splitId[1];
-          riotInfo.region = region;
-          if(!isAlphanumeric(riotInfo.summonerID) || riotInfo.summonerID.length < 3  || riotInfo.summonerID.length > 16){
-            throw new Error("Summoner ID (Game Name) must be between 3-16 alphanumeric characters");
-          }
-          if(!isAlphanumeric(riotInfo.riot_tag) || riotInfo.riot_tag.length < 3 || riotInfo.riot_tag.length > 5){
-            throw new Error("Tagline must be between 3-5 alphanumeric characters");
-          }
-          riotInfo.riotID = `${riotInfo.summonerID}#${riotInfo.riot_tag}`
-          console.log(riotInfo)
-          //console.log(`summoner: ${riotInfo.summonerID} region: ${riotInfo.riot_tag}`);
-          for(let i = 0; i < data.length; i++){
-            //console.log(`region: ${data[i].riot_tag}`);
-            if((value.target.value === data[i].summonerID) && data[i].riot_tag === region){
-              console.log(`Found Summoner: ${value.target.value} Region: ${data[i].region}`);
-              userFound = true; 
-              //change this to have it recieve a call from the backend
-            }
-          }
-          if(userFound === false){
-            //make sure to verify that the user is in the Riot API
-            //createPost()
-          }
-        } 
-        else {
-          throw new Error('Response was not between 200-299'); //if the response was not a 200 then we throw an error
+const createPost = async () => {
+  try{
+    await axios.post("http://localhost:5000/search", riotInfo);
+  }catch(e){
+    if(e.response){
+      console.error(`Response error: ${e.response}`)
+    } else {
+      // Something went wrong setting up the request
+      console.error(`Error: ${e.response}`);
+    } 
+  };
+};
+
+const riotInfo = {
+  summonerID: searchText,
+  riotID: "",
+  riot_tag: "",
+  region: "",
+};
+    
+const fetchData = async (value) => {
+  try{
+    createPost()
+    const response = await fetch("http://localhost:5000/summoners"); //makes a call to summoners endpoint
+    if (response.ok){ //if the respose status is in the range 200-299 response.ok returns true. Else False  
+      const data = await response.json(); //converts response to json
+      console.log(riotInfo)
+      console.log(data)
+      //console.log(`summoner: ${riotInfo.summonerID} region: ${riotInfo.riot_tag}`);
+      for(let i = 0; i < data.length; i++){
+        //console.log(`region: ${data[i].riot_tag}`);
+        if((value.target.value === data[i].summonerID) && data[i].riot_tag === region){
+          console.log(`Found Summoner: ${value.target.value} Region: ${data[i].region}`);
+          //change this to have it recieve a call from the backend
         }
-      } catch(error){ //error object that gets thrown if anything in the try block fails
-        console.error("Failed to fetch summoners:", error) //prints out the error in console
+      }
+    } 
+    else {
+      throw new Error('Response was not between 200-299'); //if the response was not a 200 then we throw an error
+    }
+  } catch(error){ //error object that gets thrown if anything in the try block fails
+    console.error("Failed to fetch summoners:", error) //prints out the error in console
+  }
+}
+
+function isEnter(event){
+    if(event.key === "Enter"){
+      const splitId = searchText.split('#').map(i => i.trim());
+      riotInfo.summonerID = splitId[0];
+      riotInfo.riot_tag = splitId[1];
+      riotInfo.region = region;
+      riotInfo.riotID = `${riotInfo.summonerID}#${riotInfo.riot_tag}`
+      if(!isAlphanumeric(riotInfo.summonerID) || riotInfo.summonerID.length < 3  || riotInfo.summonerID.length > 16){
+        alert("Summoner ID (Game Name) must be between 3-16 alphanumeric characters");
+      }
+      if(!isAlphanumeric(riotInfo.riot_tag) || riotInfo.riot_tag.length < 3 || riotInfo.riot_tag.length > 5){
+        alert("Tagline must be between 3-5 alphanumeric characters");
+      }
+      else{
+        fetchData(event)
       }
     }
-
-    const createPost = async () => {
-      try{
-        await axios.post("http://localhost:5000/add_summoner", riotInfo);
-      }catch(e){
-        if(e.response){
-          console.error(`Response error: ${e.response}`)
-        } else {
-          // Something went wrong setting up the request
-          console.error(`Error: ${e.response}`);
-        } 
-      };
-    };
-    
-    function isEnter(event){
-        if(event.key === "Enter"){
-          fetchData(event)
-        }
-    }
+}
 
     return (
         <div className = "search-container">
@@ -110,7 +109,7 @@ export default function SearchBar() {
             name = "search" 
             onKeyDown = {isEnter} 
             onChange = {e => handleChange(e.target.value)} 
-            placeholder= "Game Name + " 
+            placeholder= "Game Name + Tag" 
             size = "50" 
             className="search-bar">
             </input>

@@ -83,6 +83,40 @@ def add_summoner():
     except Exception as e:
         db.session.rollback()
         return jsonify({"error": f"Failed to add summoner: {str(e)}"}), 400
+    
+
+@app.route('/search_and_add_summoner', methods=['POST'])
+def search_and_add_summoner():
+    try:
+        data = request.get_json()
+
+        # Call the existing search function
+        search_result = search().get_json()
+
+        if "summonerID" not in search_result or not search_result["summonerID"]:
+            return jsonify({"error": "Failed to retrieve Summoner ID"}), 400
+
+        # Add summoner using the search result
+        new_summoner = SummonerProfile(
+            summonerID=search_result['summonerID'],
+            riot_id=search_result['riot_id'],
+            riot_tag=search_result['riot_tag'],
+            puuid=search_result['puuid=data'],  # Ensure this key is correctly set
+            region=search_result['region=data']
+        )
+
+        db.session.add(new_summoner)
+        db.session.commit()
+
+        return jsonify({
+            "message": "Summoner added successfully!",
+            **search_result  # Merges search_result data into the response
+        }), 200
+
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({"error": f"Failed to add summoner: {str(e)}"}), 400
+
 
 
 # Route to fetch all summoners (just for testing)

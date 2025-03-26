@@ -1,6 +1,5 @@
 ## 🌟 Teemo.GG
-Teemo.gg is a full-stack web application designed to display detailed League of Legends player statistics and facilitate real-time messaging between users. The website allows players to easily view their in-game performance and connect with others to form teams or find duo partners.
-
+A website for displaying League of Legends stats and helping players connect through a live messaging system.
 ## 🛠️ Tech Stack
 Frontend: React, HTML, CSS, JavaScript
 

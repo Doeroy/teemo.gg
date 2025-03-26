@@ -12,3 +12,6 @@ Database: MySQL
 API Integration: Riot Games API
 
 Other Tools: Axios, WebSockets
+### 👥 Creators
+- [Hai Le](https://github.com/Doeroy) – Frontend development, API integration, backend development, real-time messaging  
+- [Daniel Asiamah](https://github.com/dasiamah308) – Backend development, database design, front-end components, deployment

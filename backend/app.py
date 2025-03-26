@@ -84,25 +84,31 @@ def add_summoner():
         db.session.rollback()
         return jsonify({"error": f"Failed to add summoner: {str(e)}"}), 400
     
-'''
+    
 @app.route('/search_and_add_summoner', methods=['POST'])
 def search_and_add_summoner():
     try:
         data = request.get_json()
+        summoner_name = data['summonerID']
+        tag_line = data['riot_tag']
+        region = data['region']
 
-        # Call the existing search function
-        search_result = search().get_json()
+        # Step 1: Get the puuid and summoner ID from Riot API
+        puuid = get_puuid(gameName=summoner_name, tagLine=tag_line)
+        if not puuid:
+            return jsonify({"error": "Failed to retrieve PUUID"}), 400
 
-        if "summonerID" not in search_result or not search_result["summonerID"]:
+        summoner_id = get_summoner_id_from_puuid(puuid)
+        if not summoner_id:
             return jsonify({"error": "Failed to retrieve Summoner ID"}), 400
 
-        # Add summoner using the search result
+        # Step 2: Store the summoner in the database
         new_summoner = SummonerProfile(
-            summonerID=search_result['summonerID'],
-            riot_id=search_result['riot_id'],
-            riot_tag=search_result['riot_tag'],
-            puuid=search_result['puuid=data'],  # Ensure this key is correctly set
-            region=search_result['region=data']
+            summonerID=summoner_id,
+            riot_id=summoner_name,
+            riot_tag=tag_line,
+            puuid=puuid,
+            region=region
         )
 
         db.session.add(new_summoner)
@@ -110,13 +116,17 @@ def search_and_add_summoner():
 
         return jsonify({
             "message": "Summoner added successfully!",
-            **search_result  # Merges search_result data into the response
+            "summonerID": summoner_id,
+            "riot_id": summoner_name,
+            "riot_tag": tag_line,
+            "puuid": puuid,
+            "region": region
         }), 200
 
     except Exception as e:
         db.session.rollback()
         return jsonify({"error": f"Failed to add summoner: {str(e)}"}), 400
-'''
+
 
 
 

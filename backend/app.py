@@ -54,14 +54,13 @@ def search():
     return jsonify({'summonerID': get_summoner_id_from_puuid(puuid),
             'riot_id': summoner_name,
             'riot_tag': tag_line,
-            'puuid=data': puuid,
-            'region=data': region
+            'puuid': puuid,
+            'region': region
         })
 
 # Route to add a summoner profile (generalized)
 @app.route('/add_summoner', methods=['POST'])
 def add_summoner():
-
     try:
         data = request.get_json()  # Get the data from the request body
         # Ensure that the required fields are present

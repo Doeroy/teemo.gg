@@ -6,7 +6,7 @@ from models import SummonerProfile
 from sqlalchemy import text
 from extend import db
 from flask_cors import CORS 
-from riot_calls.main import get_puuid, get_summoner_id_from_puuid
+from riot_calls.main import get_puuid, get_summoner_id_from_puuid, get_summoner_info
 
 """
 React runs on localhost:3000 and Flask runs on localhost:5000 so our browser will block
@@ -84,7 +84,7 @@ def add_summoner():
         db.session.rollback()
         return jsonify({"error": f"Failed to add summoner: {str(e)}"}), 400
     
-    
+#route to add a summoner into the database
 @app.route('/search_and_add_summoner', methods=['POST'])
 def search_and_add_summoner():
     try:
@@ -102,11 +102,17 @@ def search_and_add_summoner():
         real_puuid = get_puuid(gameName=summoner_name, tagLine = tag_line)
         region = data['region']
 
+        if real_puuid == 0:
+            print('reached  it')
+            return jsonify({"message": "User doesn't exist"}), 404
+        print(real_puuid)
+
         print(F"PUUID: {real_puuid}")
+        s_dict = get_summoner_info(real_puuid, region)
         # Create a new SummonerProfile
         new_summoner = SummonerProfile(
             summonerID=summoner_name,
-            riot_id=riot_id,
+            riot_id=s_dict['id'],
             riot_tag=tag_line,
             puuid=real_puuid,
             region=region
@@ -115,11 +121,11 @@ def search_and_add_summoner():
         db.session.add(new_summoner)
         db.session.commit()
         print("Summoner added!")
-
+        
         return jsonify({
             "message": "Summoner added successfully!",
             "summonerID": summoner_name,
-            "riot_id": riot_id,
+            "riot_id": s_dict['id'],
             "riot_tag": tag_line,
             "puuid": real_puuid,
             "region": region
@@ -138,8 +144,11 @@ def retrieve_summoner_info():
         tag_line = request.args.get('riot_tag')
         summoners = SummonerProfile.query.all()
 
-        for users in summoners:
-            if (users.summonerID == summoner_name) and (users.riot_tag == tag_line):
+        for user in summoners:
+            if (user.summonerID == summoner_name) and (user.riot_tag == tag_line):
+                s_dict = get_summoner_info(user.puuid, user.region)
+                #s_data = {'icon': s_dict['profileIconId'], }
+
                 return jsonify({"message": "Summoner found successfully in database!"}), 200
         return jsonify({"message": "Could not find summoner in database"}), 404
     

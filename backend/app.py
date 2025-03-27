@@ -133,7 +133,7 @@ def search_and_add_summoner():
 @app.route('/search_and_send_summoner', methods=['GET'])
 def retrieve_summoner_info():
     try:
-        request.args.get('  ')
+        request.args.get('')
     expect Exception as e:
 '''
 

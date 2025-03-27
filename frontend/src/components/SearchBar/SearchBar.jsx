@@ -6,6 +6,7 @@ import axios from 'axios';
 export default function SearchBar() {
     const [searchText, setSearchText] = useState("");
     const [region, setRegion] = useState("NA1")
+    const [status, setStatus] = useState('Idle')
     //[isLoading, setIsLoading] = useState(false);
 
     //const onSearch = async () => {
@@ -35,7 +36,7 @@ const createPost = async () => {
       console.error(`Response error: ${e.response}`)
     } else {
       // Something went wrong setting up the request
-      console.error(`Error: ${e.response}`);
+      console.error(`Error: ${e}`);
     } 
   };
 };
@@ -48,28 +49,25 @@ const riotInfo = {
   puuid: ""
 };
     
-const fetchData = async (value) => {
+const fetchData = async () => {
   try{
-    //let userFound = false;
-    /*
-      need to add an if statement to see if the user is already 
-    */
-    const response = await axios.get("http://localhost:5000/summoners", {params: riotInfo}); //makes a call to summoners endpoint
-     //if the respose status is in the range 200-299 response.ok returns true. Else False  
-      console.log(riotInfo)
-      console.log(response.data)
-      //userFound = true;
-    
-    /*
-    else if(!userFound){
-      console.log('ballsack')
-    }
-    */
-    if(response.status > 299) {
-      throw new Error('Response was not between 200-299'); //if the response was not a 200 then we throw an error
-    }
-  } catch(error){ //error object that gets thrown if anything in the try block fails
-    console.error("Failed to fetch summoners:", error) //prints out the error in console
+    const response = await axios.get("http://localhost:5000/search_and_send_summoner", {params: riotInfo}); //makes a call to summoners endpoint
+    console.log(riotInfo)
+    console.log(response.data)
+    console.log(response.status)
+    }catch(error){ //error object that gets thrown if anything in the try block fails
+      if(error.response && error.response.status == 404){ //sometimes we don't get an error.response so we need to check for it so the if statement doesn't break
+        try{
+          console.log("Summoner wasn't found in the database. Attempting to add summoner")
+          const test = await createPost()
+          console.log('Successfully added summoner!')
+        }
+        catch(addError){
+          console.error("Failed to add summoner: ", addError)
+        }
+      }else{
+      console.error("Failed to fetch summoner:", error) //prints out the error in console
+      }
   }
 }
 
@@ -80,7 +78,7 @@ function isEnter(event){
       riotInfo.riot_tag = splitId[1];
       riotInfo.region = region;
       riotInfo.riot_id = `${riotInfo.summonerID}#${riotInfo.riot_tag}`
-      riotInfo.puuid = "temp" // temporary dummy value
+      riotInfo.puuid = "balls" // temporary dummy value
       if(!isAlphanumericName(riotInfo.summonerID) || riotInfo.summonerID.length < 3  || riotInfo.summonerID.length > 16){
         alert("Summoner ID (Game Name) must be between 3-16 alphanumeric characters");
         return;
@@ -90,7 +88,7 @@ function isEnter(event){
         return;
       }
       else{
-        fetchData(event)
+        fetchData()
       }
     }
 }

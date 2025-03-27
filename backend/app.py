@@ -102,6 +102,7 @@ def search_and_add_summoner():
         real_puuid = get_puuid(gameName=summoner_name, tagLine = tag_line)
         region = data['region']
 
+        print(F"PUUID: {real_puuid}")
         # Create a new SummonerProfile
         new_summoner = SummonerProfile(
             summonerID=summoner_name,
@@ -129,14 +130,22 @@ def search_and_add_summoner():
         print("Error:", e)
         return jsonify({"error": f"Failed to add summoner: {str(e)}"}), 400
 
-'''
+#route to search for a specific summoner from the database
 @app.route('/search_and_send_summoner', methods=['GET'])
 def retrieve_summoner_info():
     try:
-        request.args.get('')
-    expect Exception as e:
-'''
+        summoner_name = request.args.get('summonerID')
+        tag_line = request.args.get('riot_tag')
+        summoners = SummonerProfile.query.all()
 
+        for users in summoners:
+            if (users.summonerID == summoner_name) and (users.riot_tag == tag_line):
+                return jsonify({"message": "Summoner found successfully in database!"}), 200
+        return jsonify({"message": "Could not find summoner in database"}), 404
+    
+    except Exception as e:
+        print("Error:", e)
+        return jsonify({"error": f"Failed to retrieve summoner: {str(e)}"}), 400
 
 
 

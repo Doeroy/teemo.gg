@@ -52,7 +52,6 @@ def get_summoner_id_from_puuid(puuid, region='na1'):
     """
 
     url = f"https://{region}.api.riotgames.com/lol/summoner/v4/summoners/by-puuid/{puuid}?api_key={api_key}"
-    
     response = requests.get(url)
 
     if response.status_code == 200:
@@ -71,4 +70,4 @@ print("Received from frontend:", summonerID, riot_tag, region)
 '''
 bruh = get_puuid("doeroy", "NA1")
 print(bruh)
-
+print(api_key)

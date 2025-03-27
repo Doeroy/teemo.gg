@@ -89,8 +89,8 @@ def add_summoner():
 def search_and_add_summoner():
     try:
         data = request.get_json()
-        print("💥 Incoming data:", data)
-        print("🧪 Keys present:", list(data.keys()))
+        print("Incoming data:", data)
+        print("Keys present:", list(data.keys()))
 
         # Validate required fields
         if not all(key in data for key in ['summonerID', 'riot_id', 'riot_tag', 'puuid', 'region']):
@@ -113,7 +113,7 @@ def search_and_add_summoner():
 
         db.session.add(new_summoner)
         db.session.commit()
-        print("✅ Summoner added!")
+        print("Summoner added!")
 
         return jsonify({
             "message": "Summoner added successfully!",
@@ -126,8 +126,18 @@ def search_and_add_summoner():
 
     except Exception as e:
         db.session.rollback()
-        print("❌ Error:", e)
+        print("Error:", e)
         return jsonify({"error": f"Failed to add summoner: {str(e)}"}), 400
+
+'''
+@app.route('/search_and_send_summoner', methods=['GET'])
+def retrieve_summoner_info():
+    try:
+        request.args.get('  ')
+    expect Exception as e:
+'''
+
+
 
 
 # Route to fetch all summoners (just for testing)

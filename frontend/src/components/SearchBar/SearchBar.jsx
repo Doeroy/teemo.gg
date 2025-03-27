@@ -25,7 +25,8 @@ function  isAlphanumeric(str){
 
 const createPost = async () => {
   try{
-    await axios.post("http://localhost:5000/search_and_add_summoner", riotInfo);
+    const response = await axios.post("http://localhost:5000/search_and_add_summoner", riotInfo);
+    console.log(`Success: ${response.status}`)
   }catch(e){
     if(e.response){
       console.error(`Response error: ${e.response}`)
@@ -46,22 +47,22 @@ const riotInfo = {
     
 const fetchData = async (value) => {
   try{
-    let userFound = false;
-    createPost() 
+    //let userFound = false;
     /*
       need to add an if statement to see if the user is already 
     */
-    const response = await fetch("http://localhost:5000/summoners"); //makes a call to summoners endpoint
-    if (response.ok){ //if the respose status is in the range 200-299 response.ok returns true. Else False  
-      const data = await response.json(); //converts response to json
+    const response = await axios.get("http://localhost:5000/summoners"); //makes a call to summoners endpoint
+     //if the respose status is in the range 200-299 response.ok returns true. Else False  
       console.log(riotInfo)
-      console.log(data)
-      userFound = true;
-    }
+      console.log(response.data)
+      //userFound = true;
+    
+    /*
     else if(!userFound){
       console.log('ballsack')
     }
-    else {
+    */
+    if(response.status > 299) {
       throw new Error('Response was not between 200-299'); //if the response was not a 200 then we throw an error
     }
   } catch(error){ //error object that gets thrown if anything in the try block fails
@@ -76,7 +77,7 @@ function isEnter(event){
       riotInfo.riot_tag = splitId[1];
       riotInfo.region = region;
       riotInfo.riot_id = `${riotInfo.summonerID}#${riotInfo.riot_tag}`
-      riotInfo.puuid = "balls" // temporary dummy value
+      riotInfo.puuid = "temp" // temporary dummy value
       if(!isAlphanumeric(riotInfo.summonerID) || riotInfo.summonerID.length < 3  || riotInfo.summonerID.length > 16){
         alert("Summoner ID (Game Name) must be between 3-16 alphanumeric characters");
         return;

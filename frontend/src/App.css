@@ -5,7 +5,7 @@
 }
 
 body{
-  background: no-repeat  center url(C:\Users\evanl\OneDrive\Desktop\teemo.gg\teemo.gg\frontend\public\irelia-divine-sword-lol-wild-rift-splash-art-2k-wallpaper-uhdpaper.com-283@1@e.jpg);
+  background: no-repeat  center url('/public/images/divine_irelia.jpg');
   background-repeat: no-repeat;
   background-size: cover;
 }

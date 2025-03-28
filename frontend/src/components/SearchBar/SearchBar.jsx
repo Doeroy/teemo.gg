@@ -115,16 +115,18 @@ export default function SearchBar({ setSummonerData }) {
         riotInfo.region = region;
         riotInfo.riot_id = ''
         riotInfo.puuid = "balls" // temporary dummy value
-        if(riotInfo.summonerID === ''){
+        console.log(typeof(riotInfo.riot_tag))
+        if(riotInfo.summonerID === '' || riotInfo.summonerID === undefined){
           alert("Please type in your summoner name");
-          return
+          return;
         }
         else if(!isAlphanumericName(riotInfo.summonerID) || riotInfo.summonerID.length < 3  || riotInfo.summonerID.length > 16){
           alert("Summoner ID (Game Name) must be between 3-16 alphanumeric characters");
           return;
         }
-        else if(riotInfo.riot_tag === ''){
-          alert('Please type in your tagline')
+        else if(riotInfo.riot_tag === '' || riotInfo.riot_tag === undefined){
+          alert('Please type in your tagline');
+          return;
         }
         else if(!isAlphanumericTag(riotInfo.riot_tag) || riotInfo.riot_tag.length < 3 || riotInfo.riot_tag.length > 5){
           alert("Tagline must be between 3-5 alphanumeric characters");

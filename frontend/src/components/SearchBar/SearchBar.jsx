@@ -61,11 +61,12 @@ export default function SearchBar({ setSummonerData }) {
   const fetchData = async (riotInfo) => {
     try{
       setLoading(true)
+      console.log(riotInfo)
       const response = await axios.get("http://localhost:5000/search_and_send_summoner", {params: riotInfo}); //makes a call to summoners endpoint
       setLoading(false)
       console.log(response.data)
       console.log(response.status)
-      setSummonerData(response.data)
+      setSummonerData(()=>(response.data))
       setStatus('Found')
       }catch(error){ //error object that gets thrown if anything in the try block fails
         if(error.response && error.response.status === 404){ //sometimes we don't get an error.response so we need to check for it so the if statement doesn't break
@@ -73,11 +74,12 @@ export default function SearchBar({ setSummonerData }) {
             console.log("Summoner wasn't found in the database. Attempting to add summoner")
             setLoading(true)
             const add_result = await createPost(riotInfo)
+            console.log(`add_result.success = ${add_result.success}`)
             if(add_result.success){
               setLoading(false)
               console.log('Successfully added summoner!')
               console.log(add_result)
-              setSummonerData(add_result.data)
+              setSummonerData(()=>(add_result))
               setStatus('Added')
             } else if(add_result.error === 'not_found'){
               console.error(`Summoner does not exist. Status Code: 404`)

@@ -97,18 +97,19 @@ def search_and_add_summoner():
             return jsonify({"error": "Missing data in request!"}), 400
 
         summoner_name = data['summonerID']
-        riot_id = data['riot_id']
+        #riot_id = data['riot_id']
         tag_line = data['riot_tag']
         real_puuid = get_puuid(gameName=summoner_name, tagLine = tag_line)
         region = data['region']
 
         if real_puuid == 0:
             print('reached  it')
-            return jsonify({"message": "User doesn't exist"}), 404
+            return jsonify({'success': False, 'error': 'not_found' }), 404
         print(real_puuid)
 
         print(F"PUUID: {real_puuid}")
         s_dict = get_summoner_info(real_puuid, region)
+        ret_data = {'success': True, 'error': None, 'id': s_dict['id'], 'icon': s_dict['profileIconId'], 'level': s_dict['summonerLevel']}
         # Create a new SummonerProfile
         new_summoner = SummonerProfile(
             summonerID=summoner_name,
@@ -121,7 +122,8 @@ def search_and_add_summoner():
         db.session.add(new_summoner)
         db.session.commit()
         print("Summoner added!")
-        
+        return jsonify(ret_data)
+        '''
         return jsonify({
             "message": "Summoner added successfully!",
             "summonerID": summoner_name,
@@ -130,11 +132,11 @@ def search_and_add_summoner():
             "puuid": real_puuid,
             "region": region
         }), 200
-
+        '''
     except Exception as e:
         db.session.rollback()
         print("Error:", e)
-        return jsonify({"error": f"Failed to add summoner: {str(e)}"}), 400
+        return jsonify({'success': False, "error": f"Failed to add summoner: {str(e)}"}), 400
 
 #route to search for a specific summoner from the database
 @app.route('/search_and_send_summoner', methods=['GET'])
@@ -147,9 +149,9 @@ def retrieve_summoner_info():
         for user in summoners:
             if (user.summonerID == summoner_name) and (user.riot_tag == tag_line):
                 s_dict = get_summoner_info(user.puuid, user.region)
-                #s_data = {'icon': s_dict['profileIconId'], }
+                ret_data = {'id': s_dict['id'], 'icon': s_dict['profileIconId'], 'level': s_dict['summonerLevel']}
 
-                return jsonify({"message": "Summoner found successfully in database!"}), 200
+                return jsonify(ret_data), 200
         return jsonify({"message": "Could not find summoner in database"}), 404
     
     except Exception as e:

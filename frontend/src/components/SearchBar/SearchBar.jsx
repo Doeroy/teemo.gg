@@ -7,6 +7,7 @@ export default function SearchBar({ setSummonerData }) {
     const [searchText, setSearchText] = useState("");
     const [region, setRegion] = useState("NA1")
     const [status, setStatus] = useState('Idle')
+    const [loading, setLoading] = useState(false)
     //[isLoading, setIsLoading] = useState(false);
 
     //const onSearch = async () => {
@@ -27,18 +28,19 @@ export default function SearchBar({ setSummonerData }) {
   function isAlphanumericTag(str){
     return /^[a-z0-9]+$/i.test(str);
   }
-  const createPost = async () => {
+
+  const createPost = async (riotInfo) => {
     try{
       const response = await axios.post("http://localhost:5000/search_and_add_summoner", riotInfo);
       console.log(`Success: ${response.status}`)
-      return {success: true, error: null}
+      return response.data
     }catch(e){
-      if(e.response && e.response.status == 404){
+      if(e.response && e.response.status === 404){
         setStatus('Summoner not found');
-        return { success: false, error: 'not_found' };
+        return e.response.data
       }
       else if(e.response){
-        console.error(`Response error: ${e.response}`)
+        console.error(`Response Error: ${e.response}`)
         return { success: false, error: 'response_error' };
       } else {
         console.error(`Error: ${e}`);
@@ -47,6 +49,7 @@ export default function SearchBar({ setSummonerData }) {
     };
   };
 
+  /*
   const riotInfo = {
     summonerID: searchText,
     riot_id: "",
@@ -54,39 +57,57 @@ export default function SearchBar({ setSummonerData }) {
     region: "",
     puuid: ""
   };
-      
-  const fetchData = async () => {
+  */   
+  const fetchData = async (riotInfo) => {
     try{
+      setLoading(true)
       const response = await axios.get("http://localhost:5000/search_and_send_summoner", {params: riotInfo}); //makes a call to summoners endpoint
+      setLoading(false)
       console.log(response.data)
       console.log(response.status)
+      setSummonerData(response.data)
       setStatus('Found')
       }catch(error){ //error object that gets thrown if anything in the try block fails
-        if(error.response && error.response.status == 404){ //sometimes we don't get an error.response so we need to check for it so the if statement doesn't break
+        if(error.response && error.response.status === 404){ //sometimes we don't get an error.response so we need to check for it so the if statement doesn't break
           try{
             console.log("Summoner wasn't found in the database. Attempting to add summoner")
-            const add_result = await createPost()
+            setLoading(true)
+            const add_result = await createPost(riotInfo)
             if(add_result.success){
+              setLoading(false)
               console.log('Successfully added summoner!')
+              console.log(add_result)
+              setSummonerData(add_result.data)
               setStatus('Added')
-            } else if(add_result.error == 'not_found'){
-              console.error('Error Status: 404. Summoner does not exist')
+            } else if(add_result.error === 'not_found'){
+              console.error(`Summoner does not exist. Status Code: 404`)
+              setLoading(false)
             }else {
               setStatus('Error');
+              setLoading(false)
             }
           }
           catch(addError) {
             console.error("Failed to add summoner: ", addError);
             setStatus('Error');
+            setLoading(false)
           }
           }else{
           console.error("Failed to fetch summoner:", error) //prints out the error in console
           setStatus('Error')
+          setLoading(false)
           }
       }
   }
 
   function isEnter(event){
+    const riotInfo = {
+      summonerID: searchText,
+      riot_id: "",
+      riot_tag: "",
+      region: "",
+      puuid: ""
+    };
       if(event.key === "Enter"){
         const splitId = searchText.split('#').map(i => i.trim());
         riotInfo.summonerID = splitId[0];
@@ -94,17 +115,24 @@ export default function SearchBar({ setSummonerData }) {
         riotInfo.region = region;
         riotInfo.riot_id = ''
         riotInfo.puuid = "balls" // temporary dummy value
-        if(!isAlphanumericName(riotInfo.summonerID) || riotInfo.summonerID.length < 3  || riotInfo.summonerID.length > 16){
+        if(riotInfo.summonerID === ''){
+          alert("Please type in your summoner name");
+          return
+        }
+        else if(!isAlphanumericName(riotInfo.summonerID) || riotInfo.summonerID.length < 3  || riotInfo.summonerID.length > 16){
           alert("Summoner ID (Game Name) must be between 3-16 alphanumeric characters");
           return;
         }
-        if(!isAlphanumericTag(riotInfo.riot_tag) || riotInfo.riot_tag.length < 3 || riotInfo.riot_tag.length > 5){
+        else if(riotInfo.riot_tag === ''){
+          alert('Please type in your tagline')
+        }
+        else if(!isAlphanumericTag(riotInfo.riot_tag) || riotInfo.riot_tag.length < 3 || riotInfo.riot_tag.length > 5){
           alert("Tagline must be between 3-5 alphanumeric characters");
           return;
         }
         else{
           setStatus('Loading')
-          fetchData()
+          fetchData(riotInfo)
         }
       }
   }
@@ -126,7 +154,7 @@ export default function SearchBar({ setSummonerData }) {
                 <option value="VN2">VN</option>
               </select>
             </form> 
-            <input type="text" 
+            <input disabled = {loading} type="text" 
             value = {searchText} 
             name = "search" 
             onKeyDown = {isEnter} 
@@ -137,7 +165,7 @@ export default function SearchBar({ setSummonerData }) {
             </input>
             <FaSearch id="search-icon"/>  
             </div>
-            <p>{status}</p>
+            <p>{status}</p>  {/*delete this later*/} 
         </div>
       
     );

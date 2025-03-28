@@ -2,11 +2,12 @@ import os
 from flask import Flask, request, jsonify
 from flask_sqlalchemy import SQLAlchemy
 from dotenv import load_dotenv
-from models import SummonerProfile
+from models import SummonerProfile, SummonerStats
 from sqlalchemy import text
 from extend import db
 from flask_cors import CORS 
 from riot_calls.main import get_puuid, get_summoner_id_from_puuid, get_summoner_info
+from riot_calls.stats import get_match_data_from_id, get_match_history, process_match_json
 
 """
 React runs on localhost:3000 and Flask runs on localhost:5000 so our browser will block
@@ -171,7 +172,71 @@ def get_summoners():
     except Exception as e:
         print("/summoners error:", e)
         return jsonify({"error": str(e)}), 500  # Return the error message if something goes wrong
+    
 
+
+@app.route('/match_history', methods=['POST'])
+def get_match_history():
+    try:
+        
+        data = request.get_json()
+
+        if not all(key in data for key in ['puuid', 'match_id1', 'match_id2', 'match_id3', 'match_id4', 'match_id5', 'match_id6', 'match_id7', 'match_id8', 'match_id9', 'match_id10', 'match_id11','match_id12', 'match_id13', 'match_id14', 'match_id15', 'match_id16', 'match_id17', 'match_id18', 'match_id19', 'match_id20']):
+            return jsonify({"error": "Missing data in request!"}), 400
+        
+        summoner_name = data['summonerID']
+        #riot_id = data['riot_id']
+        tag_line = data['riot_tag']
+        real_puuid = get_puuid(gameName=summoner_name, tagLine = tag_line)
+        region = data['region']
+        
+        if region == 'NA1':
+            history = get_match_history(real_puuid)
+        
+        elif region == 'EUW1' or 'EUNE1':
+            history = get_match_history(real_puuid, 'europe')
+
+        elif region ==  'KR' or 'JP1' or 'VN2':
+            history = get_match_history(real_puuid, 'asia')
+
+        else:
+            history = get_match_history(real_puuid, 'sea')
+
+        new_history = SummonerStats(
+            puuid=real_puuid,
+            match_id1=history[0],
+            match_id2 = history[1],
+            match_id3 = history[2],
+            match_id4 = history[3],
+            match_id5 = history[4],
+            match_id6 = history[5],
+            match_id7 = history[6],
+            match_id8 = history[7],
+            match_id9 = history[8],
+            match_id10 = history[9],
+            match_id11 = history[10],
+            match_id12 = history[11],
+            match_id13 = history[12],
+            match_id14 = history[13],
+            match_id15 = history[14],
+            match_id16 = history[15],
+            match_id17 = history[16],
+            match_id18 = history[17],
+            match_id19 = history[18],
+            match_id20 = history[19]
+        )
+        db.session.add(new_history)
+        db.session.commit()
+
+        ret_data = {'puuid' : real_puuid, 'first match': history[0], 'last match': history[19]}
+        print("History added")
+        return jsonify(ret_data)
+    
+    except Exception as e:
+        db.session.rollback()
+        print("Error:", e)
+        return jsonify({'success': False, "error": f"Failed to add history: {str(e)}"}), 400
+        
 
 
 if __name__ == '__main__':

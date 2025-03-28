@@ -8,6 +8,7 @@ body{
   background: no-repeat  center url('/public/images/divine_irelia.jpg');
   background-repeat: no-repeat;
   background-size: cover;
+  transition: background-image 1s ease-in-out;
 }
 
 

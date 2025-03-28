@@ -107,7 +107,43 @@ def process_match_json(match_json,puuid):
     '''
 
 
-    return (win, kills, deaths)
+    match_data = {
+    "win": win,
+    "kills": kills,
+    "deaths": deaths,
+    "assists": assists,
+    "game_end_timestamp": game_end_timestamp,
+    "champ": champ,
+    "champ_name": champ_name,
+    "champ_lvl": champ_lvl,
+    "goldcount": goldcount,
+    "item0": item0,
+    "item1": item1,
+    "item2": item2,
+    "item3": item3,
+    "item4": item4,
+    "item5": item5,
+    "item6": item6,
+    "first_blood": first_blood,
+    "lane": lane,
+    "magic_dmg_dealt_to_champions": magic_dmg_dealt_to_champion,
+    "magic_dmg_taken": magic_dmg_taken,
+    "objectives_stolen": objectives_stolen,
+    "physical_dmg_dealt_to_champions": physical_dmg_dealt_to_champion,
+    "physical_dmg_taken": physical_dmg_taken,
+    "total_dmg_dealt_to_champions": total_dmg_dealt_to_champions,
+    "total_damage_taken": total_damage_taken,
+    "total_teammate_healing": total_teammate_healing,
+    "total_minions_killed": total_minions_killed,
+    "true_dmg_dealt_to_champions": true_damage_dealt_to_champions,
+    "true_dmg_taken": true_damage_taken,
+    "vision_score": vision_score,
+    "wards_placed": wards_placed,
+    "wards_killed": wards_killed,
+    "surrender": surrender
+}
+    return match_data
+
 
 filter = process_match_json(game,'XuQC9ILJ5989b1BnraT6PvIUUnCT7lTuM8N4itF0wXllxOQkWBi2ByCekmd3BVofFn0McwKgxJUw1g')
 

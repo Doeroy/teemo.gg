@@ -2,7 +2,7 @@ import os
 from flask import Flask, request, jsonify
 from flask_sqlalchemy import SQLAlchemy
 from dotenv import load_dotenv
-from models import SummonerProfile, SummonerStats
+from models import SummonerProfile, SummonerStats, MatchStats
 from sqlalchemy import text
 from extend import db
 from flask_cors import CORS 
@@ -201,7 +201,7 @@ def get_match_history():
 
         else:
             history = get_match_history(real_puuid, 'sea')
-
+        '''
         new_history = SummonerStats(
             puuid=real_puuid,
             match_id1=history[0],
@@ -224,19 +224,69 @@ def get_match_history():
             match_id18 = history[17],
             match_id19 = history[18],
             match_id20 = history[19]
+        )'''
+
+        new_history = SummonerStats(
+            puuid=real_puuid,
+            **{f"match_id{i+1}": history[i] for i in range(20)}
         )
+
         db.session.add(new_history)
         db.session.commit()
 
-        ret_data = {'puuid' : real_puuid, 'first match': history[0], 'last match': history[19]}
-        print("History added")
-        return jsonify(ret_data)
+        for match_id in history:
+            process_match_stats(real_puuid, match_id)
+
+        ret_data = {'puuid': real_puuid, 'first_match': history[0], 'last_match': history[19]}
+        print("Match history and stats added.")
+        return jsonify(ret_data), 201
+
+        #ret_data = {'puuid' : real_puuid, 'first match': history[0], 'last match': history[19]}
+        #print("History added")
+        #return jsonify(ret_data)
     
     except Exception as e:
         db.session.rollback()
         print("Error:", e)
         return jsonify({'success': False, "error": f"Failed to add history: {str(e)}"}), 400
+    
+
+
+#HELPER FUNCTIONS----------------------------------------------------------------------------------------------
+
+def process_match_stats(puuid, match_id):
+    """Checks if match stats exist for match_id. If not, fetches and inserts them."""
+    
+    # Check if the match stats already exist in the database
+    existing_entry = match_stats.query.filter_by(puuid=puuid, match_id=match_id).first()
+
+    if existing_entry:
+        print(f"Skipping match {match_id} - already exists.")
+        return  # If stats exist, no need to fetch again
+    
+    try:
+        # Fetch match stats using Riot API function (get match data by match_id)
+        match_data = get_match_data_from_id(match_id, 'americas')  # Use the right region as needed
         
+        # If we could not fetch match data, log and skip this match_id
+        if not match_data:
+            print(f"Skipping match {match_id} - no stats found.")
+            return
+
+        # Process the match data (this is where the details are parsed from the JSON response)
+        match_stats = process_match_json(match_data, puuid)
+
+        # Now we insert the match stats into the database
+        new_match_stat = MatchStats(puuid=puuid, match_id=match_id, **match_stats)
+        db.session.add(new_match_stat)
+        db.session.commit()
+        print(f"Match stats added for {match_id}.")
+
+    except Exception as e:
+        # In case of any errors, log them
+        db.session.rollback()
+        print(f"Error processing match {match_id}: {str(e)}")
+    
 
 
 if __name__ == '__main__':

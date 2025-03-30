@@ -1,5 +1,6 @@
 from app import app, db
 from models import SummonerStats
+from riot_calls.stats import get_match_history
 
 # Run inside Flask's application context
 with app.app_context():

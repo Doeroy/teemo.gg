@@ -98,4 +98,4 @@ def get_summoner_info(puuid:str = None,region:str = None, api:str = api_key) -> 
 
 #print(get_summoner_info('X7X-J_Tus9r4DcQSs7wvQr1r-vzzU3sK-iZ9RbzzAYaxgAZpzR3f-HfuvIYkQK-kJoitltvYm6rPUw', 'NA1'))
 
-print(get_puuid('Doublelift','NA1'))
+#print(get_puuid('Doublelift','NA1'))

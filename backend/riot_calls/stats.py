@@ -1,6 +1,7 @@
 from dotenv import load_dotenv
 import os
 import requests
+#from ..app import process_match_stats 
 
 load_dotenv()
 
@@ -17,7 +18,7 @@ def get_match_history(puuid=None, region='americas', start=0, count= 20):
 
 breh = get_match_history('XuQC9ILJ5989b1BnraT6PvIUUnCT7lTuM8N4itF0wXllxOQkWBi2ByCekmd3BVofFn0McwKgxJUw1g', 'americas', 0, 20)
 
-print(breh)
+#print(breh)
 
 def get_match_data_from_id(matchId= None, region=None):
     root_url = f'https://{region}.api.riotgames.com/'
@@ -87,6 +88,7 @@ def process_match_json(match_json,puuid):
     total_dmg_dealt_to_champions = player['totalDamageDealtToChampions']
     total_damage_taken = player['totalDamageTaken']
     total_teammate_healing = player['totalHealsOnTeammates']
+    total_teammate_shielding = player['totalDamageShieldedOnTeammates']
     total_minions_killed = player['totalMinionsKilled']
     true_damage_dealt = player['trueDamageDealt']
     true_damage_dealt_to_champions = player['trueDamageDealtToChampions']
@@ -98,21 +100,15 @@ def process_match_json(match_json,puuid):
     surrender = player['gameEndedInSurrender']
     win = player['win']
 
-    '''
-    you can get bans with pick orders with teams variable.
     
-    
-    
-    
-    '''
-
+    #you can get bans with pick orders with teams variable.
 
     match_data = {
     "win": win,
     "kills": kills,
     "deaths": deaths,
     "assists": assists,
-    "game_end_timestamp": game_end_timestamp,
+    "game_duration": game_duration,
     "champ": champ,
     "champ_name": champ_name,
     "champ_lvl": champ_lvl,
@@ -128,24 +124,27 @@ def process_match_json(match_json,puuid):
     "lane": lane,
     "magic_dmg_dealt_to_champions": magic_dmg_dealt_to_champion,
     "magic_dmg_taken": magic_dmg_taken,
-    "objectives_stolen": objectives_stolen,
     "physical_dmg_dealt_to_champions": physical_dmg_dealt_to_champion,
     "physical_dmg_taken": physical_dmg_taken,
+    "true_dmg_dealt_to_champions": true_damage_dealt_to_champions,
+    "true_dmg_taken": true_damage_taken,
     "total_dmg_dealt_to_champions": total_dmg_dealt_to_champions,
     "total_damage_taken": total_damage_taken,
     "total_teammate_healing": total_teammate_healing,
+    "total_teammate_shielding": total_teammate_shielding,
     "total_minions_killed": total_minions_killed,
-    "true_dmg_dealt_to_champions": true_damage_dealt_to_champions,
-    "true_dmg_taken": true_damage_taken,
+    "objectives_stolen": objectives_stolen,
     "vision_score": vision_score,
     "wards_placed": wards_placed,
     "wards_killed": wards_killed,
     "surrender": surrender
 }
     return match_data
-
+    #return total_teammate_shielding
 
 filter = process_match_json(game,'XuQC9ILJ5989b1BnraT6PvIUUnCT7lTuM8N4itF0wXllxOQkWBi2ByCekmd3BVofFn0McwKgxJUw1g')
-
 #print(f'kills: {filter[0]} | deaths: {filter[1]}')
 #print(filter)
+
+#brah = process_match_stats('XuQC9ILJ5989b1BnraT6PvIUUnCT7lTuM8N4itF0wXllxOQkWBi2ByCekmd3BVofFn0McwKgxJUw1g',game)
+#print(brah)

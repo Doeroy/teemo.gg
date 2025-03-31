@@ -9,7 +9,7 @@ function KDA(){
             <div>
                 <img src={championIcon} alt='Champion Icon' className={styles.championIcon}></img>
             </div>
-            <p>10/<inline className = {styles.deaths}>1</inline>/5</p>
+            <p><inline className = {styles.kills}>10</inline>/<inline className = {styles.deaths}>1</inline>/5</p>
             <div className={styles.allyTeam}>
                 <div>
                     <img src={summonerIcon} alt="Summoner Icon" className={styles.miniIcon}></img><inline>Hai</inline>
@@ -20,7 +20,9 @@ function KDA(){
                 <img src={summonerIcon} alt="Summoner Icon" className={styles.miniIcon}></img>
             </div>
             <div className={styles.allyTeam}>
-                <img src={summonerIcon} alt="Summoner Icon" className={styles.miniIcon}></img>
+                <div>
+                    <img src={summonerIcon} alt="Summoner Icon" className={styles.miniIcon}></img><inline>Daniel</inline>
+                </div>
                 <img src={summonerIcon} alt="Summoner Icon" className={styles.miniIcon}></img>
                 <img src={summonerIcon} alt="Summoner Icon" className={styles.miniIcon}></img>
                 <img src={summonerIcon} alt="Summoner Icon" className={styles.miniIcon}></img>

@@ -6,9 +6,10 @@
 
 .container{
   display: flex;
-  justify-content: space-evenly;
+  justify-content: space-around;
   align-items: center;
-  background-color: rgb(86, 100, 224);
+  background-color: rgb(129, 137, 214, 0.9);
+  border-radius: 15px;
 }
 
 .allyTeam{
@@ -29,11 +30,14 @@
 }
 
 .championIcon{
-  width: 100px;     
-    height: 100px;  
+  width: 80px;     
+    height: 80px;  
     border-radius: 50px;  
 }
 
+.kills{
+  color: lightgreen;
+}
 .deaths{
   color: red;
 }

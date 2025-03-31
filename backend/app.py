@@ -202,30 +202,7 @@ def get_match_history():
 
         else:
             history = get_match_history(real_puuid, 'sea')
-        '''
-        new_history = SummonerStats(
-            puuid=real_puuid,
-            match_id1=history[0],
-            match_id2 = history[1],
-            match_id3 = history[2],
-            match_id4 = history[3],
-            match_id5 = history[4],
-            match_id6 = history[5],
-            match_id7 = history[6],
-            match_id8 = history[7],
-            match_id9 = history[8],
-            match_id10 = history[9],
-            match_id11 = history[10],
-            match_id12 = history[11],
-            match_id13 = history[12],
-            match_id14 = history[13],
-            match_id15 = history[14],
-            match_id16 = history[15],
-            match_id17 = history[16],
-            match_id18 = history[17],
-            match_id19 = history[18],
-            match_id20 = history[19]
-        )'''
+
 
         new_history = SummonerStats(
             puuid=real_puuid,
@@ -257,7 +234,7 @@ def get_match_history():
 
 def process_match_stats(puuid, match_id):
     """Checks if match stats exist for match_id. If not, fetches and inserts them."""
-    
+    '''
     # Check if the match stats already exist in the database
     existing_entry = match_stats.query.filter_by(puuid=puuid, match_id=match_id).first()
 
@@ -285,6 +262,46 @@ def process_match_stats(puuid, match_id):
 
     except Exception as e:
         # In case of any errors, log them
+        db.session.rollback()
+        print(f"Error processing match {match_id}: {str(e)}")'
+    '''
+    try:
+        with db.session.no_autoflush:  # Prevent SQLAlchemy from flushing prematurely
+            existing_entry = MatchStats.query.filter_by(puuid=puuid, match_id=match_id).first()
+
+            if existing_entry:
+                print(f"Skipping match {match_id} - already exists. Updating instead.")
+                match_data = get_match_data_from_id(match_id, 'americas')  # Adjust for region
+                if not match_data:
+                    print(f"Skipping match {match_id} - no stats found.")
+                    return
+                
+                # Process match data
+                match_stats = process_match_json(match_data, puuid)
+
+                # Update existing entry instead of inserting a duplicate
+                for key, value in match_stats.items():
+                    setattr(existing_entry, key, value)
+
+            else:
+                # Fetch match data using Riot API function (get match data by match_id)
+                match_data = get_match_data_from_id(match_id, 'americas')  # Adjust for region
+                
+                if not match_data:
+                    print(f"Skipping match {match_id} - no stats found.")
+                    return
+
+                # Process match data
+                match_stats = process_match_json(match_data, puuid)
+
+                # Insert new match stats
+                new_match_stat = MatchStats(puuid=puuid, match_id=match_id, **match_stats)
+                db.session.add(new_match_stat)
+
+        db.session.commit()  # Commit only once at the end
+        print(f"Match stats processed for {match_id}.")
+
+    except Exception as e:
         db.session.rollback()
         print(f"Error processing match {match_id}: {str(e)}")
     

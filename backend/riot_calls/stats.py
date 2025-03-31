@@ -16,7 +16,7 @@ def get_match_history(puuid=None, region='americas', start=0, count= 20):
     response = requests.get(root_url + endpoint + query_params + '&api_key='+ api_key)
     return response.json()
 
-#breh = get_match_history('XuQC9ILJ5989b1BnraT6PvIUUnCT7lTuM8N4itF0wXllxOQkWBi2ByCekmd3BVofFn0McwKgxJUw1g', 'americas', 0, 20)
+breh = get_match_history('XuQC9ILJ5989b1BnraT6PvIUUnCT7lTuM8N4itF0wXllxOQkWBi2ByCekmd3BVofFn0McwKgxJUw1g', 'americas', 0, 20)
 
 #print(breh)
 
@@ -29,7 +29,7 @@ def get_match_data_from_id(matchId= None, region=None):
 
     return response.json()
 
-#game = get_match_data_from_id(breh[0], 'americas')
+game = get_match_data_from_id(breh[0], 'americas')
 
 #print(game)
 
@@ -48,6 +48,10 @@ def process_match_json(match_json,puuid):
     game_start_timestamp = info['gameStartTimestamp']
     game_end_timestamp = info['gameEndTimestamp']
     patch_version = info['gameVersion']
+
+
+    #game_mode = info.get('gameMode', 'Unknown')
+    game_mode = info['gameMode']
 
     assists = player['assists']
     champ = player['championId']
@@ -104,12 +108,13 @@ def process_match_json(match_json,puuid):
     #you can get bans with pick orders with teams variable.
 
     match_data = {
+    "game_mode" : game_mode,
     "win": win,
     "kills": kills,
     "deaths": deaths,
     "assists": assists,
     "game_duration": game_duration,
-    "champ": champ,
+    "champ_id": champ,
     "champ_name": champ_name,
     "champ_lvl": champ_lvl,
     "goldcount": goldcount,
@@ -143,9 +148,7 @@ def process_match_json(match_json,puuid):
     #return total_teammate_shielding
 
 
-#filter = process_match_json(game,'XuQC9ILJ5989b1BnraT6PvIUUnCT7lTuM8N4itF0wXllxOQkWBi2ByCekmd3BVofFn0McwKgxJUw1g')
-
-#print(f'kills: {filter[0]} | deaths: {filter[1]}')
+filter = process_match_json(game,'XuQC9ILJ5989b1BnraT6PvIUUnCT7lTuM8N4itF0wXllxOQkWBi2ByCekmd3BVofFn0McwKgxJUw1g')
 #print(filter)
 
 #brah = process_match_stats('XuQC9ILJ5989b1BnraT6PvIUUnCT7lTuM8N4itF0wXllxOQkWBi2ByCekmd3BVofFn0McwKgxJUw1g',game)

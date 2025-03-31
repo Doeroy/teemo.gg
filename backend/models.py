@@ -76,6 +76,7 @@ class MatchStats(db.Model):
 
     puuid = db.Column(db.String(100), primary_key=True)
     match_id = db.Column(db.String(255), primary_key=True)
+    game_mode = db.Column(db.String(255)) 
     win = db.Column(db.Integer)
     kills = db.Column(db.Integer) 
     deaths = db.Column(db.Integer) 
@@ -115,12 +116,13 @@ class MatchStats(db.Model):
         return {
             "puuid": self.puuid,
             "match_id": self.match_id,
+            "game_mode": self.game_mode,
             "win": self.win,
             "kills": self.kills,
             "deaths": self.deaths,
             "assists": self.assists,
             "game_duration": self.game_duration,
-            "champ": self.champ_id,
+            "champ_id": self.champ_id,
             "champ_name": self.champ_name,
             "champ_lvl": self.champ_lvl,
             "goldcount": self.goldcount,

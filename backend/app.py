@@ -146,13 +146,14 @@ def retrieve_summoner_info():
     try:
         summoner_name = request.args.get('summonerID')
         tag_line = request.args.get('riot_tag')
+        print(summoner_name)
         summoners = SummonerProfile.query.all()
-
+        print('1st')
         for user in summoners:
             if (user.summonerID == summoner_name) and (user.riot_tag == tag_line):
                 s_dict = get_summoner_info(user.puuid, user.region)
+                print(s_dict)
                 ret_data = {'id': s_dict['id'], 'icon': s_dict['profileIconId'], 'level': s_dict['summonerLevel'], "summonerName": summoner_name, 'tag_line': tag_line}
-                print(tag_line)
                 return jsonify(ret_data), 200
         return jsonify({"message": "Could not find summoner in database"}), 404
     

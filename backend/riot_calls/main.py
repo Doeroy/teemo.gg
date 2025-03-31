@@ -96,6 +96,7 @@ def get_summoner_info(puuid:str = None,region:str = None, api:str = api_key) -> 
     else:
         return{'status': response.status_code, 'message': response.text}
 
-#print(get_summoner_info('X7X-J_Tus9r4DcQSs7wvQr1r-vzzU3sK-iZ9RbzzAYaxgAZpzR3f-HfuvIYkQK-kJoitltvYm6rPUw', 'NA1'))
+#get_summoner_info('X7X-J_Tus9r4DcQSs7wvQr1r-vzzU3sK-iZ9RbzzAYaxgAZpzR3f-HfuvIYkQK-kJoitltvYm6rPUw', 'NA1')
 
-#print(get_puuid('Doublelift','NA1'))
+print(get_puuid('doeroy','NA1'))
+print(api_key)

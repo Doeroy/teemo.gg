@@ -1,0 +1,39 @@
+#summonerIcon {
+    width: 150px;     
+    height: 150px;  
+    border-radius: 10px;  
+  }
+
+.container{
+  display: flex;
+  justify-content: space-evenly;
+  align-items: center;
+  background-color: rgb(86, 100, 224);
+}
+
+.allyTeam{
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.enemyTeam{
+  display:flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.miniIcon{
+  width: 25px;
+  height: 25px;
+}
+
+.championIcon{
+  width: 100px;     
+    height: 100px;  
+    border-radius: 50px;  
+}
+
+.deaths{
+  color: red;
+}

@@ -6,10 +6,11 @@ function KDA(){
     let championIcon = 'https://raw.communitydragon.org/latest/plugins/rcp-be-lol-game-data/global/default/v1/champion-icons/145.png'
     return(
         <div className={styles.container}>
-            <div>
+            <div className={styles.championIconContainer}>
                 <img src={championIcon} alt='Champion Icon' className={styles.championIcon}></img>
+                <div className={styles.champAndLvl}>18</div>
             </div>
-            <p><inline className = {styles.kills}>10</inline>/<inline className = {styles.deaths}>1</inline>/5</p>
+            <p><inline className = {styles.kills}>10</inline>/<inline className = {styles.deaths}>1</inline>/<inline>5</inline></p>
             <div className={styles.allyTeam}>
                 <div>
                     <img src={summonerIcon} alt="Summoner Icon" className={styles.miniIcon}></img><inline>Hai</inline>

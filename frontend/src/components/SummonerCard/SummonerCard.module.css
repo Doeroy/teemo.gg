@@ -29,10 +29,20 @@
   height: 25px;
 }
 
+.championIconContainer{
+  position: relative; 
+}
+
+.champAndLvl{
+  position: absolute;
+  bottom: 3px;
+  background-color: black;
+  border-radius: 40px;
+}
 .championIcon{
   width: 80px;     
-    height: 80px;  
-    border-radius: 50px;  
+  height: 80px;  
+  border-radius: 50px; 
 }
 
 .kills{

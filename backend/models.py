@@ -45,29 +45,40 @@ class SummonerStats(db.Model):
     match_id20 = db.Column(db.String(255))
     
     def to_dict(self):
-        return{
-            'puuid' : self.puuid,
-            'match_id1' : self.match_id1,
-            'match_id2' : self.match_id2,
-            'match_id3' : self.match_id3,
-            'match_id4' : self.match_id4,
-            'match_id5' : self.match_id5,
-            'match_id6' : self.match_id6,
-            'match_id7' : self.match_id7,
-            'match_id8' : self.match_id8,
-            'match_id9' : self.match_id9,
-            'match_id10' : self.match_id10,
-            'match_id11' : self.match_id11,
-            'match_id12' : self.match_id12,
-            'match_id13' : self.match_id13,
-            'match_id14' : self.match_id14,
-            'match_id15' : self.match_id15,
-            'match_id16' : self.match_id16,
-            'match_id17' : self.match_id17,
-            'match_id18' : self.match_id18,
-            'match_id19' : self.match_id19,
-            'match_id20' : self.match_id20
+        
+        match_data = {
+            'puuid': self.puuid,
+            'match_id1': self.match_id1,
+            'match_id2': self.match_id2,
+            'match_id3': self.match_id3,
+            'match_id4': self.match_id4,
+            'match_id5': self.match_id5,
+            'match_id6': self.match_id6,
+            'match_id7': self.match_id7,
+            'match_id8': self.match_id8,
+            'match_id9': self.match_id9,
+            'match_id10': self.match_id10,
+            'match_id11': self.match_id11,
+            'match_id12': self.match_id12,
+            'match_id13': self.match_id13,
+            'match_id14': self.match_id14,
+            'match_id15': self.match_id15,
+            'match_id16': self.match_id16,
+            'match_id17': self.match_id17,
+            'match_id18': self.match_id18,
+            'match_id19': self.match_id19,
+            'match_id20': self.match_id20,
         }
+        return match_data
+    '''
+    def to_dict(self):
+        # Dynamically create a dictionary with match_id1, match_id2, ..., match_id20
+        match_data = {f'match_id{i}': getattr(self, f'match_id{i}') for i in range(1, 21)}
+        
+        # Add the puuid to the dictionary
+        match_data['puuid'] = self.puuid
+
+        return match_data'''
     
 
 class MatchStats(db.Model):

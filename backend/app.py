@@ -256,6 +256,7 @@ def receive_match_stats(puuid, match_id):
         else:
             return jsonify({"error": "User or match not found"}), 404
         
+        
     except Exception as e:
         return jsonify({"error": f"Error in pulling user match history from database: {str(e)}"}), 500
 

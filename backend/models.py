@@ -1,5 +1,6 @@
 # models.py
 from extend import db  # Import db from extensions
+from collections import OrderedDict
 
 class SummonerProfile(db.Model):
     __tablename__ = 'summoner_prof_test1'  # Make sure this matches your table name
@@ -123,6 +124,7 @@ class MatchStats(db.Model):
     wards_killed = db.Column(db.Integer) 
     surrender = db.Column(db.Boolean)
 
+    
     def to_dict(self):
         return {
             "puuid": self.puuid,
@@ -163,5 +165,24 @@ class MatchStats(db.Model):
             "wards_killed": self.wards_killed,
             "surrender": self.surrender
         }
+    '''
+    def to_dict(self):
+        # Define your desired field order
+        field_order = [
+            "puuid", "match_id", "game_mode", "win", "kills", "deaths", "assists",
+            "game_duration", "champ_id", "champ_name", "champ_lvl", "goldcount",
+            "item0", "item1", "item2", "item3", "item4", "item5", "item6",
+            "lane", "first_blood",
+            "magic_dmg_dealt_to_champions", "magic_dmg_taken",
+            "physical_dmg_dealt_to_champions", "physical_dmg_taken",
+            "true_dmg_dealt_to_champions", "true_dmg_taken",
+            "total_dmg_dealt_to_champions", "total_damage_taken",
+            "total_teammate_healing", "total_teammate_shielding",
+            "total_minions_killed", "objectives_stolen",
+            "vision_score", "wards_placed", "wards_killed", "surrender"
+        ]
+        
+        # Build an OrderedDict in the specified order
+        return OrderedDict((field, getattr(self, field)) for field in field_order)'''
 
 

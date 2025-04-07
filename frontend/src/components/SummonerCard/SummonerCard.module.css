@@ -1,27 +1,37 @@
-#summonerIcon {
-    width: 150px;     
-    height: 150px;  
-    border-radius: 10px;  
-  }
+.flex{
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  width: 100%;
+}
 
-.container{
+.cardContainer{
   display: flex;
   justify-content: space-around;
   align-items: center;
-  background-color: rgb(129, 137, 214, 0.9);
+  background-color: rgb(34, 45, 94, 0.95);
   border-radius: 15px;
+}
+
+#summonerIcon {
+    width: 150px;
+    height: 150px;
+    border-radius: 10px;
+    color: aliceblue;
 }
 
 .allyTeam{
   display: flex;
   flex-direction: column;
-  gap: 5px;
+  gap: 10px;
+  padding: 10px;
 }
 
 .enemyTeam{
-  display:flex;
+  display: flex;
   flex-direction: column;
-  gap: 5px;
+  gap: 10px;
+  padding: 10px;
 }
 
 .miniIcon{
@@ -29,8 +39,14 @@
   height: 25px;
 }
 
+.font{
+  font-size: 25px;
+}
+
 .championIconContainer{
   position: relative; 
+  padding-right: 15px;
+  padding-left: 15px;
 }
 
 .champAndLvl{
@@ -38,16 +54,41 @@
   bottom: 3px;
   background-color: black;
   border-radius: 40px;
+  color: aliceblue;
 }
+
 .championIcon{
-  width: 80px;     
-  height: 80px;  
+  width: 80px;
+  height: 80px;
   border-radius: 50px; 
 }
 
+.kdaSection{
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 10px
+}
+
+.items{
+  background-color: aliceblue;
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+}
 .kills{
   color: lightgreen;
 }
 .deaths{
   color: red;
+}
+
+.itemsGrid{
+  display: grid;
+  grid-template-rows: 40px 40px;
+  grid-template-columns: 40px 40px 40px 40px;
+  gap: 5px;
+  padding-left: 15px;
+  padding-right: 15px;
 }

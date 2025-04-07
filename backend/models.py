@@ -1,5 +1,6 @@
 # models.py
 from extend import db  # Import db from extensions
+from collections import OrderedDict
 
 class SummonerProfile(db.Model):
     __tablename__ = 'summoner_prof_test1'  # Make sure this matches your table name
@@ -45,29 +46,40 @@ class SummonerStats(db.Model):
     match_id20 = db.Column(db.String(255))
     
     def to_dict(self):
-        return{
-            'puuid' : self.puuid,
-            'match_id1' : self.match_id1,
-            'match_id2' : self.match_id2,
-            'match_id3' : self.match_id3,
-            'match_id4' : self.match_id4,
-            'match_id5' : self.match_id5,
-            'match_id6' : self.match_id6,
-            'match_id7' : self.match_id7,
-            'match_id8' : self.match_id8,
-            'match_id9' : self.match_id9,
-            'match_id10' : self.match_id10,
-            'match_id11' : self.match_id11,
-            'match_id12' : self.match_id12,
-            'match_id13' : self.match_id13,
-            'match_id14' : self.match_id14,
-            'match_id15' : self.match_id15,
-            'match_id16' : self.match_id16,
-            'match_id17' : self.match_id17,
-            'match_id18' : self.match_id18,
-            'match_id19' : self.match_id19,
-            'match_id20' : self.match_id20
+        
+        match_data = {
+            'puuid': self.puuid,
+            'match_id1': self.match_id1,
+            'match_id2': self.match_id2,
+            'match_id3': self.match_id3,
+            'match_id4': self.match_id4,
+            'match_id5': self.match_id5,
+            'match_id6': self.match_id6,
+            'match_id7': self.match_id7,
+            'match_id8': self.match_id8,
+            'match_id9': self.match_id9,
+            'match_id10': self.match_id10,
+            'match_id11': self.match_id11,
+            'match_id12': self.match_id12,
+            'match_id13': self.match_id13,
+            'match_id14': self.match_id14,
+            'match_id15': self.match_id15,
+            'match_id16': self.match_id16,
+            'match_id17': self.match_id17,
+            'match_id18': self.match_id18,
+            'match_id19': self.match_id19,
+            'match_id20': self.match_id20,
         }
+        return match_data
+    '''
+    def to_dict(self):
+        # Dynamically create a dictionary with match_id1, match_id2, ..., match_id20
+        match_data = {f'match_id{i}': getattr(self, f'match_id{i}') for i in range(1, 21)}
+        
+        # Add the puuid to the dictionary
+        match_data['puuid'] = self.puuid
+
+        return match_data'''
     
 
 class MatchStats(db.Model):
@@ -112,6 +124,7 @@ class MatchStats(db.Model):
     wards_killed = db.Column(db.Integer) 
     surrender = db.Column(db.Boolean)
 
+    
     def to_dict(self):
         return {
             "puuid": self.puuid,
@@ -152,5 +165,24 @@ class MatchStats(db.Model):
             "wards_killed": self.wards_killed,
             "surrender": self.surrender
         }
+    '''
+    def to_dict(self):
+        # Define your desired field order
+        field_order = [
+            "puuid", "match_id", "game_mode", "win", "kills", "deaths", "assists",
+            "game_duration", "champ_id", "champ_name", "champ_lvl", "goldcount",
+            "item0", "item1", "item2", "item3", "item4", "item5", "item6",
+            "lane", "first_blood",
+            "magic_dmg_dealt_to_champions", "magic_dmg_taken",
+            "physical_dmg_dealt_to_champions", "physical_dmg_taken",
+            "true_dmg_dealt_to_champions", "true_dmg_taken",
+            "total_dmg_dealt_to_champions", "total_damage_taken",
+            "total_teammate_healing", "total_teammate_shielding",
+            "total_minions_killed", "objectives_stolen",
+            "vision_score", "wards_placed", "wards_killed", "surrender"
+        ]
+        
+        # Build an OrderedDict in the specified order
+        return OrderedDict((field, getattr(self, field)) for field in field_order)'''
 
 

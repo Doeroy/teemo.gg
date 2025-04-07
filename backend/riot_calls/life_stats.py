@@ -1,39 +1,16 @@
-from dotenv import load_dotenv
-import os
-import requests
-#from ..app import process_match_stats 
+from stats import *
 
-load_dotenv()
 
-api_key = os.environ.get('riot_api_key')
-
-def get_match_history(puuid=None, region='americas', start=0, count= 20):
-    
-    root_url = f'https://{region}.api.riotgames.com/'
-    endpoint = f'lol/match/v5/matches/by-puuid/{puuid}/ids'
-    query_params = f'?start={start}&count={count}'
-
-    response = requests.get(root_url + endpoint + query_params + '&api_key='+ api_key)
-    return response.json()
-
-#breh = get_match_history('XuQC9ILJ5989b1BnraT6PvIUUnCT7lTuM8N4itF0wXllxOQkWBi2ByCekmd3BVofFn0McwKgxJUw1g', 'americas', 0, 20)
+breh = get_match_history('XuQC9ILJ5989b1BnraT6PvIUUnCT7lTuM8N4itF0wXllxOQkWBi2ByCekmd3BVofFn0McwKgxJUw1g', 'americas', 0, 20)
 
 #print(breh)
 
-def get_match_data_from_id(matchId= None, region=None):
-    root_url = f'https://{region}.api.riotgames.com/'
-    endpoint = f'lol/match/v5/matches/{matchId}'
-    #print(root_url + endpoint + '?api_key='+ api_key)
 
-    response = requests.get(root_url + endpoint + '?api_key='+ api_key)
-
-    return response.json()
-
-#game = get_match_data_from_id(breh[0], 'americas')
+game = get_match_data_from_id(breh[0], 'americas')
 
 #print(game)
 
-def process_match_json(match_json,puuid):
+def process_match_get_life_stats(match_json,puuid):
     metadata = match_json['metadata']
     info = match_json['info']
     players = info['participants']
@@ -113,43 +90,30 @@ def process_match_json(match_json,puuid):
     "kills": kills,
     "deaths": deaths,
     "assists": assists,
-    "game_duration": game_duration,
     "champ_id": champ,
     "champ_name": champ_name,
-    "champ_lvl": champ_lvl,
-    "goldcount": goldcount,
-    "item0": item0,
-    "item1": item1,
-    "item2": item2,
-    "item3": item3,
-    "item4": item4,
-    "item5": item5,
-    "item6": item6,
-    "first_blood": first_blood,
     "lane": lane,
-    "magic_dmg_dealt_to_champions": magic_dmg_dealt_to_champion,
-    "magic_dmg_taken": magic_dmg_taken,
-    "physical_dmg_dealt_to_champions": physical_dmg_dealt_to_champion,
-    "physical_dmg_taken": physical_dmg_taken,
-    "true_dmg_dealt_to_champions": true_damage_dealt_to_champions,
-    "true_dmg_taken": true_damage_taken,
-    "total_dmg_dealt_to_champions": total_dmg_dealt_to_champions,
-    "total_damage_taken": total_damage_taken,
-    "total_teammate_healing": total_teammate_healing,
-    "total_teammate_shielding": total_teammate_shielding,
-    "total_minions_killed": total_minions_killed,
-    "objectives_stolen": objectives_stolen,
-    "vision_score": vision_score,
-    "wards_placed": wards_placed,
-    "wards_killed": wards_killed,
-    "surrender": surrender
 }
     return match_data
-    #return total_teammate_shielding
 
 
-#filter = process_match_json(game,'XuQC9ILJ5989b1BnraT6PvIUUnCT7lTuM8N4itF0wXllxOQkWBi2ByCekmd3BVofFn0McwKgxJUw1g')
-#print(filter)
+here = process_match_get_life_stats(game, 'XuQC9ILJ5989b1BnraT6PvIUUnCT7lTuM8N4itF0wXllxOQkWBi2ByCekmd3BVofFn0McwKgxJUw1g')
+#print(here)
 
-#brah = process_match_stats('XuQC9ILJ5989b1BnraT6PvIUUnCT7lTuM8N4itF0wXllxOQkWBi2ByCekmd3BVofFn0McwKgxJUw1g',game)
-#print(brah)
+totals = {}
+#if here['win'] == False:
+totals["wins"] = 0
+#print(totals)  
+
+
+for match in breh:
+    #print(match)
+    match_data = get_match_data_from_id(match, 'americas')
+    #print(match_data)
+    temp = process_match_get_life_stats(match_data, 'XuQC9ILJ5989b1BnraT6PvIUUnCT7lTuM8N4itF0wXllxOQkWBi2ByCekmd3BVofFn0McwKgxJUw1g')
+    #print(temp)
+    if temp['win'] == True:
+        totals["wins"] = totals["wins"] + 1
+print(totals)
+
+

@@ -42,6 +42,7 @@ def test_db():
         return "Database connected successfully!"
     except Exception as e:
         return f"Database connection failed: {str(e)}"
+
     
 @app.route('/search', methods=['POST'])
 def search():
@@ -182,7 +183,7 @@ def get_match_history():
         
         data = request.get_json()
 
-        if not all(key in data for key in ['puuid', 'match_id1', 'match_id2', 'match_id3', 'match_id4', 'match_id5', 'match_id6', 'match_id7', 'match_id8', 'match_id9', 'match_id10', 'match_id11','match_id12', 'match_id13', 'match_id14', 'match_id15', 'match_id16', 'match_id17', 'match_id18', 'match_id19', 'match_id20']):
+        if not all(key in data for key in ['summonerID', 'riot_id', 'riot_tag', 'puuid', 'region']):
             return jsonify({"error": "Missing data in request!"}), 400
         
         summoner_name = data['summonerID']

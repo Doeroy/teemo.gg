@@ -232,6 +232,7 @@ def get_match_history():
 
 @app.route('/receive_match_history/<puuid>', methods=['GET'])
 def receive_match_history(puuid):
+    #THIS GETS THE MATCH ID"S OF THE LAST 20 MATCH
     try:
         user_history = SummonerStats.query.get(puuid)
 
@@ -242,6 +243,22 @@ def receive_match_history(puuid):
         
     except Exception as e:
         return jsonify({"error in pulling user match history from database": str(e)}), 500
+
+
+@app.route('/receive_match_stats/<puuid>/<match_id>', methods=['GET'])
+def receive_match_stats(puuid, match_id):
+    #THIS ONLY GETS THE STATS OF SINGLE MATCH
+    try:
+        user_history = MatchStats.query.filter_by(puuid=puuid, match_id=match_id).first()
+
+        if user_history:
+            return jsonify(user_history.to_dict()), 200
+        else:
+            return jsonify({"error": "User or match not found"}), 404
+        
+    except Exception as e:
+        return jsonify({"error": f"Error in pulling user match history from database: {str(e)}"}), 500
+
     
 
 

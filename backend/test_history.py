@@ -4,13 +4,11 @@ from riot_calls.stats import get_match_history
 
 # Run inside Flask's application context
 with app.app_context():
-    try:
-        
+    try:   
         real_puuid = "50nE-TyXu7VHhzSfaGDyzl1aJeJ2NMySrhPq-hrSmGhTAvd4HZibMbeIZ9eqi2Q93yrOGM14w9_BaQ"
         history = get_match_history(real_puuid)
         region = "americas"
-
-
+        
         # Check if the record exists
         existing_history = SummonerStats.query.filter_by(puuid=real_puuid).first()
 

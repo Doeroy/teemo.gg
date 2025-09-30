@@ -23,7 +23,7 @@ Other Tools: Axios, WebSockets
       ```
     - Run the frontend:
       ```bash
-      npm start
+      npm run dev
       ```
 2. Back-end Setup
     - Create a virtual environment:

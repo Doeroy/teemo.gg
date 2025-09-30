@@ -193,7 +193,8 @@ def retrieve_summoner_info():
                     'icon': s_dict.get('profileIconId', 0), 
                     'level': s_dict.get('summonerLevel', 1), 
                     "summonerName": summoner_name, 
-                    'tag_line': tag_line
+                    'tag_line': tag_line,
+                    'puuid': s_dict.get('puuid')
                 }
                 return jsonify(ret_data), 200
         return jsonify({"message": "Could not find summoner in database"}), 404
@@ -215,7 +216,6 @@ def get_summoners():
         print("/summoners error:", e)
         return jsonify({"error": str(e)}), 500  # Return the error message if something goes wrong
     
-
 
 @app.route('/match_history', methods=['POST'])
 def get_match_history():

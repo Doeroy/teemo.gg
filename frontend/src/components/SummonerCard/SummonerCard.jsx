@@ -1,6 +1,6 @@
-import React, {useState} from 'react'
+import React, {useState, useEffect} from 'react'
 import styles from './SummonerCard.module.css'
-
+import axios from 'axios';
 function SummonerInfo({data}){
     let lvl = data.level;
     let summonerName = data.summonerName
@@ -29,7 +29,27 @@ function ChampIconAndLvl(){
     );
 }
 
-function ItemGrid(){
+function ItemGrid({itemData}){
+    const [matches, setMatches] = useState();
+    console.log(`here: ${itemData.puuid}`)
+    const postBody = {
+        'summonerId': itemData.summonerName,
+
+    }
+    useEffect(() => {
+        const getMatches = async () => {
+            try{
+                const response = await axios.post(`http://localhost:5000/search`);
+                setMatches(response)
+            }
+            catch{
+                console.log('Error fetching users items')
+            }
+        }
+     getMatches();
+    }, [])
+    
+
     return(
     <div className={styles.itemsGrid}>
         <div className={styles.items}></div>
@@ -78,7 +98,6 @@ function Kda(){
     <div className={styles.kdaSection}>
         <p className={styles.font}><span className = {styles.kills}>10</span>/<span className = {styles.deaths}>
             1</span>/<span>5</span></p>
-        <ItemGrid/>
     </div>
     );
 }
@@ -95,7 +114,10 @@ export default function SummonerCard({data}){
             <div className = {styles.flex}>
                 <div className={styles.cardContainer}>
                     <ChampIconAndLvl/>
-                    <Kda/>
+                    <div>
+                        <Kda/>
+                        <ItemGrid itemData={data}/> 
+                    </div>
                     <AllyTeam/>
                     <EnemyTeam/>
                 </div>

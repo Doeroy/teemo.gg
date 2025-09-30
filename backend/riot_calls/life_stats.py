@@ -2,7 +2,7 @@ from stats import *
 
 
 
-breh = get_match_history('XuQC9ILJ5989b1BnraT6PvIUUnCT7lTuM8N4itF0wXllxOQkWBi2ByCekmd3BVofFn0McwKgxJUw1g', 'americas', 0, 20)
+breh = get_match_history("X7X-J_Tus9r4DcQSs7wvQr1r-vzzU3sK-iZ9RbzzAYaxgAZpzR3f-HfuvIYkQK-kJoitltvYm6rPUw", 'americas', 0, 20)
 
 #print(breh)
 
@@ -98,7 +98,7 @@ def process_match_get_life_stats(match_json,puuid):
     return match_data
 
 
-here = process_match_get_life_stats(game, 'XuQC9ILJ5989b1BnraT6PvIUUnCT7lTuM8N4itF0wXllxOQkWBi2ByCekmd3BVofFn0McwKgxJUw1g')
+here = process_match_get_life_stats(game, "X7X-J_Tus9r4DcQSs7wvQr1r-vzzU3sK-iZ9RbzzAYaxgAZpzR3f-HfuvIYkQK-kJoitltvYm6rPUw")
 #print(here)
 
 totals = {}
@@ -119,7 +119,7 @@ for match in breh:
     #print(match)
     match_data = get_match_data_from_id(match, 'americas')
     #print(match_data)
-    temp = process_match_get_life_stats(match_data, 'XuQC9ILJ5989b1BnraT6PvIUUnCT7lTuM8N4itF0wXllxOQkWBi2ByCekmd3BVofFn0McwKgxJUw1g')
+    temp = process_match_get_life_stats(match_data, "X7X-J_Tus9r4DcQSs7wvQr1r-vzzU3sK-iZ9RbzzAYaxgAZpzR3f-HfuvIYkQK-kJoitltvYm6rPUw")
     #print(temp)
     if temp['win'] == True:
         #print(temp['win'])
@@ -164,7 +164,7 @@ totals['kda'] = (totals['kills'] + totals['assists'])/totals['deaths']
 
 #print(champ_totals)
 sorted_champ_by_matches = sorted(champ_totals, key=champ_totals.get, reverse=True)
-print(sorted_champ_by_matches)
+print(f'Champs by matches played: {sorted_champ_by_matches}')
 totals['most_played_champs'] = ",".join(sorted_champ_by_matches[:5]) #the 5 gets the 5 most played champs
 #print(totals)
 
@@ -179,10 +179,10 @@ for champ, wins in champ_wins.items():
         #print(champ, wins)
         champ_winrates[champ] = wins/champ_totals[champ]
 
-print(champ_winrates)
+print(f'champion winrates: {champ_winrates}')
 sorted_winrates_worse = sorted(champ_winrates, key=champ_totals.get, reverse=True)
 sorted_winrates_best = sorted(champ_winrates, key=champ_totals.get)
-print(sorted_winrates_worse)
+print(f'{sorted_winrates_worse}')
 print(sorted_winrates_best)
 
 totals['best_champs'] = ",".join(sorted_winrates_best[:3]) #for both of these change the number to get the number of spot for that respective theme

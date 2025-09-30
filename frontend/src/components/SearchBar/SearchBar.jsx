@@ -144,11 +144,11 @@ export default function SearchBar({ setSummonerData }) {
     return (
         <div className = "search-container">
           <div className = "input-wrapper">
-            <form value = {region} onChange = {(e) => setRegion(e.target.value)}>
+            <form>
               {/* when you handle an event, React gives you back an event object. The event contains
                 the element that was changed and the current value of that element
               */}
-              <select name = "region-dropdown">
+              <select name = "region-dropdown" value={region} onChange={(e) => setRegion(e.target.value)}>
                 <option value="NA1">NA</option>
                 <option value="EUW1">EUW</option>
                 <option value="EUNE1">EUN</option>

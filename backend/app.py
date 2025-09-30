@@ -21,7 +21,7 @@ load_dotenv()
 print(" DB_HOST =", os.getenv("DB_HOST"))
 # Initialize Flask app
 app = Flask(__name__)
-CORS(app, origins=["http://localhost:3000"])
+CORS(app, origins=["http://localhost:5173"])
 
 # Set up the database URI
 app.config['SQLALCHEMY_DATABASE_URI'] = (
@@ -111,12 +111,33 @@ def search_and_add_summoner():
 
         print(F"PUUID: {real_puuid}")
         s_dict = get_summoner_info(real_puuid, region)
-        ret_data = {'success': True, 'error': None, 'id': s_dict['id'], 'icon': s_dict['profileIconId'], 'level': s_dict['summonerLevel'], "summonerName": summoner_name, 'tag_line': tag_line}
+        
+        # Handle potential missing fields from Riot API response
+        if 'status' in s_dict:
+            return jsonify({'success': False, 'error': f"Riot API error: {s_dict.get('message', 'Unknown error')}"}), 400
+            
+        # Get summoner ID (fallback if missing from response)
+        summoner_id = s_dict.get('id')
+        if not summoner_id:
+            # Try to get summoner ID using the legacy method as fallback
+            summoner_id = get_summoner_id_from_puuid(real_puuid, region)
+            if not summoner_id:
+                summoner_id = "unknown"  # Fallback value
+        
+        ret_data = {
+            'success': True, 
+            'error': None, 
+            'id': summoner_id, 
+            'icon': s_dict.get('profileIconId', 0), 
+            'level': s_dict.get('summonerLevel', 1), 
+            "summonerName": summoner_name, 
+            'tag_line': tag_line
+        }
         #added summonerName at line 112
         # Create a new SummonerProfile
         new_summoner = SummonerProfile(
             summonerID=summoner_name,
-            riot_id=s_dict['id'],
+            riot_id=summoner_id,
             riot_tag=tag_line,
             puuid=real_puuid,
             region=region
@@ -154,7 +175,26 @@ def retrieve_summoner_info():
             if (user.summonerID == summoner_name) and (user.riot_tag == tag_line):
                 s_dict = get_summoner_info(user.puuid, user.region)
                 print(s_dict)
-                ret_data = {'id': s_dict['id'], 'icon': s_dict['profileIconId'], 'level': s_dict['summonerLevel'], "summonerName": summoner_name, 'tag_line': tag_line}
+                
+                # Handle potential missing fields from Riot API response (same fix as add endpoint)
+                if 'status' in s_dict:
+                    return jsonify({"error": f"Riot API error: {s_dict.get('message', 'Unknown error')}"}), 400
+                    
+                # Get summoner ID (fallback if missing from response)
+                summoner_id = s_dict.get('id')
+                if not summoner_id:
+                    # Try to get summoner ID using the legacy method as fallback
+                    summoner_id = get_summoner_id_from_puuid(user.puuid, user.region)
+                    if not summoner_id:
+                        summoner_id = "unknown"  # Fallback value
+                
+                ret_data = {
+                    'id': summoner_id, 
+                    'icon': s_dict.get('profileIconId', 0), 
+                    'level': s_dict.get('summonerLevel', 1), 
+                    "summonerName": summoner_name, 
+                    'tag_line': tag_line
+                }
                 return jsonify(ret_data), 200
         return jsonify({"message": "Could not find summoner in database"}), 404
     

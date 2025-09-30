@@ -87,6 +87,7 @@ export default function SummonerCard({data}){
     if (!data || !data.summonerName || !data.icon) {
         return null; // Render nothing if there's no valid data
     }
+    console.log('here: ', data)
     let summonerIcon = 'https://raw.communitydragon.org/latest/plugins/rcp-be-lol-game-data/global/default/v1/profile-icons/3150.jpg';
     return(
         <>

@@ -1,6 +1,7 @@
 import React, {useState, useEffect} from 'react'
 import styles from './SummonerCard.module.css'
 import axios from 'axios';
+
 function SummonerInfo({data}){
     let lvl = data.level;
     let summonerName = data.summonerName
@@ -16,9 +17,25 @@ function SummonerInfo({data}){
     );
 }
 
-function ChampIconAndLvl(){
-    let championIcon = 'https://raw.communitydragon.org/latest/plugins/rcp-be-lol-game-data/global/default/v1/champion-icons/145.png';
-
+function ChampIconAndLvl({matchId, puuid}){
+    const [champId, setChampId] = useState('');
+    useEffect(() => {
+        const getChamp = async () => {
+            try{
+                const response = await axios.get(`http://localhost:5000/receive_match_stats/${puuid}/${matchId.match_id1}`);
+                console.log("champ: ", response.data.champ_id)
+                setChampId(response.data.champ_id)
+            }
+            catch(error){
+                console.log('Error fetching users champ:', error)
+            }
+        }
+        if (matchId?.match_id1) {
+            getChamp();
+        }
+    }, [matchId, puuid])
+    console.log('champId: ', champId)
+    let championIcon = `https://raw.communitydragon.org/latest/plugins/rcp-be-lol-game-data/global/default/v1/champion-icons/${champId}.png`;
     return(
         <div className={styles.championIconContainer}>
                 <img src={championIcon} alt='Champion Icon' className={styles.championIcon}></img>
@@ -29,30 +46,27 @@ function ChampIconAndLvl(){
     );
 }
 
-function ItemGrid({itemData}){
-    const [matches, setMatches] = useState();
-    console.log(`here: ${itemData.puuid}`)
-    const postBody = {
-        'summonerId': itemData.summonerName,
-
-    }
+function ItemGrid({matchId, puuid}){
+    const [items, setItems] = useState();
     useEffect(() => {
-        const getMatches = async () => {
+        const getItems = async () => {
             try{
-                const response = await axios.post(`http://localhost:5000/search`);
-                setMatches(response)
+                const response = await axios.get(`http://localhost:5000/receive_match_stats/${puuid}/${matchId.match_id1}`);
+                setItems(response.data);
             }
-            catch{
-                console.log('Error fetching users items')
+            catch(error){
+                console.log('Error fetching users items:', error)
             }
         }
-     getMatches();
-    }, [])
-    
-
+        if (matchId?.match_id1) {
+            getItems();
+        }
+    }, [matchId, puuid])
+    const itemsUrl = 'https://raw.communitydragon.org/latest/plugins/rcp-be-lol-game-data/global/default/assets/items/icons2d/'
     return(
     <div className={styles.itemsGrid}>
-        <div className={styles.items}></div>
+        <div className={styles.items}>
+        </div>
         <div className={styles.items}></div>
         <div className={styles.items}></div>
         <div className={styles.items}></div>
@@ -93,30 +107,76 @@ function EnemyTeam(){
     );
 }
 
-function Kda(){
+function Kda({matchId, puuid}){
+    const [kda, setKda] = useState('');
+    console.log('Match ID: ', matchId?.match_id1);
+    console.log('ItemGrid PUUID', puuid)
+    useEffect(() => {
+        const getKda = async () => {
+            try{
+                const response = await axios.get(`http://localhost:5000/receive_match_stats/${puuid}/${matchId.match_id1}`);
+                console.log("KDA: ", response.data)
+                setKda(response.data);
+            }
+            catch(error){
+                console.log('Error fetching users kda:', error)
+            }
+        }
+        if (matchId?.match_id1) {
+            getKda();
+        }
+    }, [matchId, puuid])
     return(
     <div className={styles.kdaSection}>
-        <p className={styles.font}><span className = {styles.kills}>10</span>/<span className = {styles.deaths}>
-            1</span>/<span>5</span></p>
+        <p className={styles.font}>
+            <span className = {styles.kills}>{kda.kills}</span>/<span className = {styles.deaths}>
+            {kda.deaths}</span>/<span>{kda.assists}</span>
+        </p>
+        <p>KDA: {((kda.kills+kda.assists)/kda.deaths).toFixed(2)}</p>
     </div>
     );
 }
 
 export default function SummonerCard({data}){
+    if (!data) return null
+    const [matches, setMatches] = useState();
+    console.log('data: ', data)
+    console.log(`data.puuid: ${data.puuid} data.region: ${data.region}`)
+
+    useEffect(() => {
+        const getMatches = async () => {
+            try{
+                // First, post to fetch and store match history
+                const post_response = await axios.post(`http://localhost:5000/match_history`, {puuid: data.puuid, region: data.region});
+                console.log('Post response:', post_response.data);
+                
+                // Then, get the stored match history
+                const get_response = await axios.get(`http://localhost:5000/receive_match_history/${data.puuid}`)
+                console.log('Get response:', get_response.data);
+                
+                setMatches(get_response.data)
+                console.log('Match Data: ', get_response.data)
+            }
+            catch(error){
+                console.log('Error fetching users data:', error)
+            }
+        }
+        getMatches();
+    }, [data.puuid, data.region])
+
     if (!data || !data.summonerName || !data.icon) {
         return null; // Render nothing if there's no valid data
     }
     console.log('here: ', data)
-    let summonerIcon = 'https://raw.communitydragon.org/latest/plugins/rcp-be-lol-game-data/global/default/v1/profile-icons/3150.jpg';
     return(
         <>
-            <SummonerInfo data = {data}/>
+            <SummonerInfo data={data}/>
             <div className = {styles.flex}>
                 <div className={styles.cardContainer}>
-                    <ChampIconAndLvl/>
+                    <ChampIconAndLvl matchId={matches} puuid={data.puuid}/>
                     <div>
-                        <Kda/>
-                        <ItemGrid itemData={data}/> 
+                        <Kda matchId={matches} puuid={data.puuid}/>
+                        <ItemGrid matchId={matches} puuid={data.puuid}/> 
                     </div>
                     <AllyTeam/>
                     <EnemyTeam/>

@@ -7,7 +7,7 @@ from sqlalchemy import text
 from extend import db
 from flask_cors import CORS 
 from riot_calls.main import get_puuid, get_summoner_id_from_puuid, get_summoner_info
-from riot_calls.stats import get_match_data_from_id, get_match_history, process_match_json
+from riot_calls.stats import get_match_data_from_id, retrieve_match_history, process_match_json
 
 """
 React runs on localhost:3000 and Flask runs on localhost:5000 so our browser will block
@@ -93,17 +93,14 @@ def search_and_add_summoner():
         data = request.get_json()
         print("Incoming data:", data)
         print("Keys present:", list(data.keys()))
-
         # Validate required fields
         if not all(key in data for key in ['summonerID', 'riot_id', 'riot_tag', 'puuid', 'region']):
             return jsonify({"error": "Missing data in request!"}), 400
-
         summoner_name = data['summonerID']
         #riot_id = data['riot_id']
         tag_line = data['riot_tag']
         real_puuid = get_puuid(gameName=summoner_name, tagLine = tag_line)
         region = data['region']
-
         if real_puuid == 0:
             print('reached  it')
             return jsonify({'success': False, 'error': 'not_found' }), 404
@@ -168,14 +165,12 @@ def retrieve_summoner_info():
     try:
         summoner_name = request.args.get('summonerID')
         tag_line = request.args.get('riot_tag')
-        print(summoner_name)
+        print('From /search_and_send_summoner. Summoner_name: ', summoner_name)
         summoners = SummonerProfile.query.all()
-        print('1st')
         for user in summoners:
             if (user.summonerID == summoner_name) and (user.riot_tag == tag_line):
                 s_dict = get_summoner_info(user.puuid, user.region)
-                print(s_dict)
-                
+                print('From /search_and_send_summoner. s_dict: ', s_dict)
                 # Handle potential missing fields from Riot API response (same fix as add endpoint)
                 if 'status' in s_dict:
                     return jsonify({"error": f"Riot API error: {s_dict.get('message', 'Unknown error')}"}), 400
@@ -194,7 +189,8 @@ def retrieve_summoner_info():
                     'level': s_dict.get('summonerLevel', 1), 
                     "summonerName": summoner_name, 
                     'tag_line': tag_line,
-                    'puuid': s_dict.get('puuid')
+                    'puuid': s_dict.get('puuid'),
+                    'region': user.region,
                 }
                 return jsonify(ret_data), 200
         return jsonify({"message": "Could not find summoner in database"}), 404
@@ -220,37 +216,40 @@ def get_summoners():
 @app.route('/match_history', methods=['POST'])
 def get_match_history():
     try:
-        
         data = request.get_json()
-
-        if not all(key in data for key in ['summonerID', 'riot_id', 'riot_tag', 'puuid', 'region']):
+        print('Data: ', data)
+        if not all(key in data for key in ['puuid', 'region']):
             return jsonify({"error": "Missing data in request!"}), 400
-        
-        summoner_name = data['summonerID']
-        #riot_id = data['riot_id']
-        tag_line = data['riot_tag']
-        real_puuid = get_puuid(gameName=summoner_name, tagLine = tag_line)
+        real_puuid = data['puuid']
         region = data['region']
         
         if region == 'NA1':
-            history = get_match_history(real_puuid)
+            history = retrieve_match_history(real_puuid)
         
         elif region == 'EUW1' or 'EUNE1':
-            history = get_match_history(real_puuid, 'europe')
+            history = retrieve_match_history(real_puuid, 'europe')
 
         elif region ==  'KR' or 'JP1' or 'VN2':
-            history = get_match_history(real_puuid, 'asia')
+            history = retrieve_match_history(real_puuid, 'asia')
 
         else:
-            history = get_match_history(real_puuid, 'sea')
+            history = retrieve_match_history(real_puuid, 'sea')
 
-
-        new_history = SummonerStats(
-            puuid=real_puuid,
-            **{f"match_id{i+1}": history[i] for i in range(20)}
-        )
-
-        db.session.add(new_history)
+        # Build the match_id dictionary
+        match_ids = {f"match_id{i+1}": history[i] for i in range(20)}
+        
+        # Use INSERT ... ON DUPLICATE KEY UPDATE to handle existing records
+        columns = ', '.join(['puuid'] + list(match_ids.keys()))
+        placeholders = ', '.join([':puuid'] + [f':{key}' for key in match_ids.keys()])
+        updates = ', '.join([f'{key} = VALUES({key})' for key in match_ids.keys()])
+        
+        sql = text(f"""
+            INSERT INTO match_history ({columns})
+            VALUES ({placeholders})
+            ON DUPLICATE KEY UPDATE {updates}
+        """)
+        
+        db.session.execute(sql, {'puuid': real_puuid, **match_ids})
         db.session.commit()
 
         for match_id in history:
@@ -273,9 +272,9 @@ def get_match_history():
 @app.route('/receive_match_history/<puuid>', methods=['GET'])
 def receive_match_history(puuid):
     #THIS GETS THE MATCH ID"S OF THE LAST 20 MATCH
+    print('This is the PUUID in receive_match_history: ', puuid)
     try:
         user_history = SummonerStats.query.get(puuid)
-
         if user_history:
             return jsonify(user_history.to_dict()), 200
         else:

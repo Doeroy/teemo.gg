@@ -68,17 +68,17 @@ export default function SearchBar({ setSummonerData }) {
       console.log(response.status)
       setSummonerData(()=>(response.data))
       setStatus('Found')
+      console.log('This is the add_result: ', response.data)
       }catch(error){ //error object that gets thrown if anything in the try block fails
         if(error.response && error.response.status === 404){ //sometimes we don't get an error.response so we need to check for it so the if statement doesn't break
           try{
             console.log("Summoner wasn't found in the database. Attempting to add summoner")
             setLoading(true)
             const add_result = await createPost(riotInfo)
-            console.log(`add_result.success = ${add_result.success}`)
             if(add_result.success){
+              console.log(`add_result.success = ${add_result.success}`)
               setLoading(false)
               console.log('Successfully added summoner!')
-              console.log(add_result)
               setSummonerData(()=>(add_result))
               setStatus('Added')
             } else if(add_result.error === 'not_found'){

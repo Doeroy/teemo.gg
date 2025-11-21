@@ -7,7 +7,7 @@ load_dotenv()
 
 api_key = os.environ.get('riot_api_key')
 
-def get_match_history(puuid=None, region='americas', start=0, count= 20):
+def retrieve_match_history(puuid=None, region='americas', start=0, count= 20):
     
     root_url = f'https://{region}.api.riotgames.com/'
     endpoint = f'lol/match/v5/matches/by-puuid/{puuid}/ids'

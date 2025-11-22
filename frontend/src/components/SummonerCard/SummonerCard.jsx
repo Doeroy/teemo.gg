@@ -7,8 +7,6 @@ function SummonerInfo({data}){
     let summonerName = data.summonerName
     let icon = `https://raw.communitydragon.org/latest/plugins/rcp-be-lol-game-data/global/default/v1/profile-icons/${data.icon}.jpg`;
     let tag = data.tag_line
-    console.log("tag: ", tag)
-
     return(
         <div>   
             <img src={icon} alt="Summoner Icon" id ={styles.summonerIcon}></img>
@@ -19,12 +17,13 @@ function SummonerInfo({data}){
 
 function ChampIconAndLvl({matchId, puuid}){
     const [champId, setChampId] = useState('');
+    const [lvl, setLvl] = useState('');
     useEffect(() => {
         const getChamp = async () => {
             try{
                 const response = await axios.get(`http://localhost:5000/receive_match_stats/${puuid}/${matchId.match_id1}`);
-                console.log("champ: ", response.data.champ_id)
                 setChampId(response.data.champ_id)
+                setLvl(response.data.champ_lvl)
             }
             catch(error){
                 console.log('Error fetching users champ:', error)
@@ -40,7 +39,7 @@ function ChampIconAndLvl({matchId, puuid}){
         <div className={styles.championIconContainer}>
                 <img src={championIcon} alt='Champion Icon' className={styles.championIcon}></img>
             <div className={styles.champAndLvl}>
-                18
+                {lvl}
             </div>
         </div>
     );
@@ -109,8 +108,6 @@ function EnemyTeam(){
 
 function Kda({matchId, puuid}){
     const [kda, setKda] = useState('');
-    console.log('Match ID: ', matchId?.match_id1);
-    console.log('ItemGrid PUUID', puuid)
     useEffect(() => {
         const getKda = async () => {
             try{
@@ -126,13 +123,17 @@ function Kda({matchId, puuid}){
             getKda();
         }
     }, [matchId, puuid])
+    console.log(kda)
+    const csScore = (kda.total_minions_killed)/(kda.game_duration/60)
     return(
     <div className={styles.kdaSection}>
         <p className={styles.font}>
             <span className = {styles.kills}>{kda.kills}</span>/<span className = {styles.deaths}>
             {kda.deaths}</span>/<span>{kda.assists}</span>
         </p>
-        <p>KDA: {((kda.kills+kda.assists)/kda.deaths).toFixed(2)}</p>
+        <p className='text-sm'>KDA: {((kda.kills+kda.assists)/kda.deaths).toFixed(2)}</p>
+        <p className='text-sm'>CS: {kda.total_minions_killed} ({csScore.toFixed(1)})</p>
+        <p className='text-sm'>Vision Score: {kda.vision_score}</p>
     </div>
     );
 }
@@ -167,7 +168,6 @@ export default function SummonerCard({data}){
     if (!data || !data.summonerName || !data.icon) {
         return null; // Render nothing if there's no valid data
     }
-    console.log('here: ', data)
     return(
         <>
             <SummonerInfo data={data}/>

@@ -102,7 +102,6 @@ def search_and_add_summoner():
         real_puuid = get_puuid(gameName=summoner_name, tagLine = tag_line)
         region = data['region']
         if real_puuid == 0:
-            print('reached  it')
             return jsonify({'success': False, 'error': 'not_found' }), 404
         print(real_puuid)
 
@@ -125,6 +124,8 @@ def search_and_add_summoner():
             'success': True, 
             'error': None, 
             'id': summoner_id, 
+            'puuid': real_puuid, 
+            'region': region,
             'icon': s_dict.get('profileIconId', 0), 
             'level': s_dict.get('summonerLevel', 1), 
             "summonerName": summoner_name, 

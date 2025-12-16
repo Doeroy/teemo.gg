@@ -2,41 +2,63 @@ import os
 from flask import Flask, request, jsonify
 from flask_sqlalchemy import SQLAlchemy
 from dotenv import load_dotenv
-from models import SummonerProfile, SummonerStats, MatchStats
 from sqlalchemy import text
 from extend import db
-from flask_cors import CORS 
+from flask_cors import CORS
+
+# Import the NEW normalized models
+from models import Summoner, Match, MatchParticipant
+
+# Riot API helper functions
 from riot_calls.main import get_puuid, get_summoner_id_from_puuid, get_summoner_info
 from riot_calls.stats import get_match_data_from_id, retrieve_match_history, process_match_json
 
-"""
-React runs on localhost:3000 and Flask runs on localhost:5000 so our browser will block
-requests across different origins. Lines "from flask_cors import CORS" 
-and CORS(app, origins=["http://localhost:3000"]) tell flask that its okay to accept request from other
-origins
-"""
+# =============================================================================
+# APP CONFIGURATION
+# =============================================================================
 
-# Load environment variables from .env file
 load_dotenv()
-print(" DB_HOST =", os.getenv("DB_HOST"))
-# Initialize Flask app
+print("DB_HOST =", os.getenv("DB_HOST"))
+
 app = Flask(__name__)
 CORS(app, origins=["http://localhost:5173"])
 
-# Set up the database URI
+# Database connection
 app.config['SQLALCHEMY_DATABASE_URI'] = (
     f"mysql+mysqlconnector://{os.getenv('DB_USERNAME')}:{os.getenv('DB_PASSWORD')}"
     f"@{os.getenv('DB_HOST')}/{os.getenv('DB_NAME')}"
 )
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
-# Initialize SQLAlchemy
 db.init_app(app)
 
 
-# Route to test database connection
+# =============================================================================
+# UTILITY FUNCTIONS
+# =============================================================================
+
+def get_routing_region(region):
+    """
+    Convert server region to Riot API routing region.
+    Riot has regional routing for match-v5 endpoints.
+    """
+    if region == 'NA1':
+        return 'americas'
+    elif region in ('EUW1', 'EUNE1'):
+        return 'europe'
+    elif region in ('KR', 'JP1', 'VN2'):
+        return 'asia'
+    else:
+        return 'sea'
+
+
+# =============================================================================
+# HEALTH CHECK ENDPOINTS
+# =============================================================================
+
 @app.route('/test_db')
 def test_db():
+    """Test database connection"""
     try:
         db.session.execute(text('SELECT 1'))
         return "Database connected successfully!"
@@ -44,312 +66,524 @@ def test_db():
         return f"Database connection failed: {str(e)}"
 
 
+# =============================================================================
+# SUMMONER ENDPOINTS
+# =============================================================================
+
 @app.route('/search', methods=['POST'])
 def search():
+    """
+    Quick search - just gets puuid from Riot API without saving to database.
+    Use this for autocomplete/validation before full search.
+    """
     data = request.get_json()
     summoner_name = data['summonerID']
     tag_line = data['riot_tag']
     region = data['region']
-    print(summoner_name, tag_line)
-    puuid = get_puuid(gameName=summoner_name, tagLine=tag_line)
-    print(puuid)
-    return jsonify({'summonerID': get_summoner_id_from_puuid(puuid),
-            'riot_id': summoner_name,
-            'riot_tag': tag_line,
-            'puuid': puuid,
-            'region': region
-        })
-
-# Route to add a summoner profile (generalized)
-@app.route('/add_summoner', methods=['POST'])
-def add_summoner():
-    try:
-        data = request.get_json()  # Get the data from the request body
-        # Ensure that the required fields are present
-        if not all(key in data for key in ['summonerID', 'riot_id', 'riot_tag', 'puuid', 'region']):
-            return jsonify({"error": "Missing data in request!"}), 400
-
-        # Assuming your SummonerProfile model is set up correctly
-        new_summoner = SummonerProfile(
-            summonerID=data['summonerID'],
-            riot_id=data['riot_id'],
-            riot_tag=data['riot_tag'],
-            puuid=data['puuid'],
-            region=data['region']
-        )
-
-        db.session.add(new_summoner)
-        db.session.commit()
-
-        return jsonify({"message": "Summoner added successfully!"}), 200
-    except Exception as e:
-        db.session.rollback()
-        return jsonify({"error": f"Failed to add summoner: {str(e)}"}), 400
     
-#route to add a summoner into the database
+    puuid = get_puuid(gameName=summoner_name, tagLine=tag_line)
+    
+    return jsonify({
+        'summonerID': get_summoner_id_from_puuid(puuid),
+        'riot_id': summoner_name,
+        'riot_tag': tag_line,
+        'puuid': puuid,
+        'region': region
+    })
+
+
 @app.route('/search_and_add_summoner', methods=['POST'])
 def search_and_add_summoner():
+    """
+    Search for a summoner via Riot API and save/update them in our database.
+    
+    Flow:
+    1. Get puuid from Riot Account API
+    2. Get profile info from Riot Summoner API
+    3. Insert or update summoner in our database
+    4. Return summoner data to frontend
+    """
     try:
         data = request.get_json()
         print("Incoming data:", data)
-        print("Keys present:", list(data.keys()))
+        
         # Validate required fields
-        if not all(key in data for key in ['summonerID', 'riot_id', 'riot_tag', 'puuid', 'region']):
+        required_fields = ['summonerID', 'riot_id', 'riot_tag', 'puuid', 'region']
+        if not all(key in data for key in required_fields):
             return jsonify({"error": "Missing data in request!"}), 400
+        
         summoner_name = data['summonerID']
-        #riot_id = data['riot_id']
         tag_line = data['riot_tag']
-        real_puuid = get_puuid(gameName=summoner_name, tagLine = tag_line)
         region = data['region']
+        
+        # Step 1: Get puuid from Riot API
+        real_puuid = get_puuid(gameName=summoner_name, tagLine=tag_line)
         if real_puuid == 0:
-            return jsonify({'success': False, 'error': 'not_found' }), 404
-        print(real_puuid)
-
-        print(F"PUUID: {real_puuid}")
+            return jsonify({'success': False, 'error': 'not_found'}), 404
+        
+        print(f"PUUID: {real_puuid}")
+        
+        # Step 2: Get summoner profile from Riot API
         s_dict = get_summoner_info(real_puuid, region)
         
-        # Handle potential missing fields from Riot API response
         if 'status' in s_dict:
-            return jsonify({'success': False, 'error': f"Riot API error: {s_dict.get('message', 'Unknown error')}"}), 400
-            
-        # Get summoner ID (fallback if missing from response)
+            return jsonify({
+                'success': False,
+                'error': f"Riot API error: {s_dict.get('message', 'Unknown error')}"
+            }), 400
+        
+        # Get summoner_id (fallback if missing)
         summoner_id = s_dict.get('id')
         if not summoner_id:
-            # Try to get summoner ID using the legacy method as fallback
             summoner_id = get_summoner_id_from_puuid(real_puuid, region)
             if not summoner_id:
-                summoner_id = "unknown"  # Fallback value
+                summoner_id = "unknown"
         
-        ret_data = {
-            'success': True, 
-            'error': None, 
-            'id': summoner_id, 
-            'puuid': real_puuid, 
-            'region': region,
-            'icon': s_dict.get('profileIconId', 0), 
-            'level': s_dict.get('summonerLevel', 1), 
-            "summonerName": summoner_name, 
-            'tag_line': tag_line
-        }
-        #added summonerName at line 112
-        # Create a new SummonerProfile
-        new_summoner = SummonerProfile(
-            summonerID=summoner_name,
-            riot_id=summoner_id,
-            riot_tag=tag_line,
-            puuid=real_puuid,
-            region=region
-        )
-
-        db.session.add(new_summoner)
+        # Step 3: Insert or update summoner in database
+        # =====================================================================
+        # This is called an "UPSERT" - insert if new, update if exists
+        # =====================================================================
+        existing_summoner = Summoner.query.get(real_puuid)
+        
+        if existing_summoner:
+            # Update existing summoner
+            existing_summoner.summoner_id = summoner_id
+            existing_summoner.riot_name = summoner_name
+            existing_summoner.riot_tag = tag_line
+            existing_summoner.region = region
+            existing_summoner.profile_icon_id = s_dict.get('profileIconId', 0)
+            existing_summoner.summoner_level = s_dict.get('summonerLevel', 1)
+            print(f"Updated existing summoner: {summoner_name}#{tag_line}")
+        else:
+            # Create new summoner
+            new_summoner = Summoner(
+                puuid=real_puuid,
+                summoner_id=summoner_id,
+                riot_name=summoner_name,
+                riot_tag=tag_line,
+                region=region,
+                profile_icon_id=s_dict.get('profileIconId', 0),
+                summoner_level=s_dict.get('summonerLevel', 1)
+            )
+            db.session.add(new_summoner)
+            print(f"Added new summoner: {summoner_name}#{tag_line}")
+        
         db.session.commit()
-        print("Summoner added!")
-        return jsonify(ret_data)
-        '''
+        
+        # Step 4: Return response
         return jsonify({
-            "message": "Summoner added successfully!",
-            "summonerID": summoner_name,
-            "riot_id": s_dict['id'],
-            "riot_tag": tag_line,
-            "puuid": real_puuid,
-            "region": region
-        }), 200
-        '''
+            'success': True,
+            'error': None,
+            'id': summoner_id,
+            'puuid': real_puuid,
+            'region': region,
+            'icon': s_dict.get('profileIconId', 0),
+            'level': s_dict.get('summonerLevel', 1),
+            'summonerName': summoner_name,
+            'tag_line': tag_line
+        })
+        
     except Exception as e:
         db.session.rollback()
         print("Error:", e)
-        return jsonify({'success': False, "error": f"Failed to add summoner: {str(e)}"}), 400
+        return jsonify({'success': False, 'error': f"Failed to add summoner: {str(e)}"}), 400
 
-#route to search for a specific summoner from the database
+
 @app.route('/search_and_send_summoner', methods=['GET'])
 def retrieve_summoner_info():
+    """
+    Retrieve a summoner from our database by name and tag.
+    If found, also fetches fresh profile data from Riot API.
+    """
     try:
         summoner_name = request.args.get('summonerID')
         tag_line = request.args.get('riot_tag')
-        print('From /search_and_send_summoner. Summoner_name: ', summoner_name)
-        summoners = SummonerProfile.query.all()
-        for user in summoners:
-            if (user.summonerID == summoner_name) and (user.riot_tag == tag_line):
-                s_dict = get_summoner_info(user.puuid, user.region)
-                print('From /search_and_send_summoner. s_dict: ', s_dict)
-                # Handle potential missing fields from Riot API response (same fix as add endpoint)
-                if 'status' in s_dict:
-                    return jsonify({"error": f"Riot API error: {s_dict.get('message', 'Unknown error')}"}), 400
-                    
-                # Get summoner ID (fallback if missing from response)
-                summoner_id = s_dict.get('id')
-                if not summoner_id:
-                    # Try to get summoner ID using the legacy method as fallback
-                    summoner_id = get_summoner_id_from_puuid(user.puuid, user.region)
-                    if not summoner_id:
-                        summoner_id = "unknown"  # Fallback value
-                
-                ret_data = {
-                    'id': summoner_id, 
-                    'icon': s_dict.get('profileIconId', 0), 
-                    'level': s_dict.get('summonerLevel', 1), 
-                    "summonerName": summoner_name, 
-                    'tag_line': tag_line,
-                    'puuid': s_dict.get('puuid'),
-                    'region': user.region,
-                }
-                return jsonify(ret_data), 200
-        return jsonify({"message": "Could not find summoner in database"}), 404
-    
+        print(f'Looking up summoner: {summoner_name}#{tag_line}')
+        
+        # Query using the new model
+        summoner = Summoner.query.filter_by(
+            riot_name=summoner_name,
+            riot_tag=tag_line
+        ).first()
+        
+        if not summoner:
+            return jsonify({"message": "Could not find summoner in database"}), 404
+        
+        # Fetch fresh data from Riot API
+        s_dict = get_summoner_info(summoner.puuid, summoner.region)
+        
+        if 'status' in s_dict:
+            return jsonify({
+                "error": f"Riot API error: {s_dict.get('message', 'Unknown error')}"
+            }), 400
+        
+        # Get summoner_id (fallback if missing)
+        summoner_id = s_dict.get('id')
+        if not summoner_id:
+            summoner_id = get_summoner_id_from_puuid(summoner.puuid, summoner.region)
+            if not summoner_id:
+                summoner_id = "unknown"
+        
+        return jsonify({
+            'id': summoner_id,
+            'icon': s_dict.get('profileIconId', 0),
+            'level': s_dict.get('summonerLevel', 1),
+            'summonerName': summoner_name,
+            'tag_line': tag_line,
+            'puuid': summoner.puuid,
+            'region': summoner.region,
+        }), 200
+        
     except Exception as e:
         print("Error:", e)
         return jsonify({"error": f"Failed to retrieve summoner: {str(e)}"}), 400
 
 
-
-# Route to fetch all summoners (just for testing)
 @app.route('/summoners', methods=['GET'])
 def get_summoners():
+    """Get all summoners (for testing/debugging)"""
     try:
-        summoners = SummonerProfile.query.all()  # Fetch all summoners from the database
-        print("Retrieved summoners:", summoners)
-        return jsonify([summoner.to_dict() for summoner in summoners])  # Convert each to dict and return as JSON
+        summoners = Summoner.query.all()
+        return jsonify([s.to_dict() for s in summoners])
     except Exception as e:
         print("/summoners error:", e)
-        return jsonify({"error": str(e)}), 500  # Return the error message if something goes wrong
-    
+        return jsonify({"error": str(e)}), 500
+
+
+# =============================================================================
+# MATCH HISTORY ENDPOINTS
+# =============================================================================
 
 @app.route('/match_history', methods=['POST'])
 def get_match_history():
+    """
+    Fetch and store match history for a summoner.
+    
+    Flow:
+    1. Get last 20 match IDs from Riot API
+    2. For each match:
+       a. Check if match exists in our database
+       b. If not, fetch match details and store them
+       c. Store the player's participation stats
+    3. Return summary
+    
+    This is the "heavy lifting" endpoint that populates our database.
+    """
     try:
         data = request.get_json()
-        print('Data: ', data)
+        print('Received match_history request:', data)
+        
         if not all(key in data for key in ['puuid', 'region']):
-            return jsonify({"error": "Missing data in request!"}), 400
-        real_puuid = data['puuid']
+            return jsonify({"error": "Missing puuid or region"}), 400
+        
+        puuid = data['puuid']
         region = data['region']
+        routing_region = get_routing_region(region)
         
-        if region == 'NA1':
-            history = retrieve_match_history(real_puuid)
+        # Step 1: Get match IDs from Riot API
+        match_ids = retrieve_match_history(puuid, routing_region)
         
-        elif region in ('EUW1' ,'EUNE1'):
-            history = retrieve_match_history(real_puuid, 'europe')
-
-        elif region in ('KR', 'JP1', 'VN2'):
-            history = retrieve_match_history(real_puuid, 'asia')
-
-        else:
-            history = retrieve_match_history(real_puuid, 'sea')
-
-        # Build the match_id dictionary
-        match_ids = {f"match_id{i+1}": history[i] for i in range(20)}
+        if not match_ids:
+            return jsonify({"error": "No matches found"}), 404
         
-        # Use INSERT ... ON DUPLICATE KEY UPDATE to handle existing records
-        columns = ', '.join(['puuid'] + list(match_ids.keys()))
-        placeholders = ', '.join([':puuid'] + [f':{key}' for key in match_ids.keys()])
-        updates = ', '.join([f'{key} = VALUES({key})' for key in match_ids.keys()])
+        print(f"Found {len(match_ids)} matches for {puuid}")
         
-        sql = text(f"""
-            INSERT INTO match_history ({columns})
-            VALUES ({placeholders})
-            ON DUPLICATE KEY UPDATE {updates}
-        """)
+        # Step 2: Process each match
+        processed_count = 0
+        for match_id in match_ids:
+            success = process_and_store_match(puuid, match_id, routing_region)
+            if success:
+                processed_count += 1
         
-        db.session.execute(sql, {'puuid': real_puuid, **match_ids})
         db.session.commit()
-
-        for match_id in history:
-            process_match_stats(real_puuid, match_id)
-
-        ret_data = {'puuid': real_puuid, 'first_match': history[0], 'last_match': history[19]}
-        print("Match history and stats added.")
-        return jsonify(ret_data), 201
-
-        #ret_data = {'puuid' : real_puuid, 'first match': history[0], 'last match': history[19]}
-        #print("History added")
-        #return jsonify(ret_data)
-    
+        
+        return jsonify({
+            'puuid': puuid,
+            'matches_found': len(match_ids),
+            'matches_processed': processed_count,
+            'first_match': match_ids[0] if match_ids else None,
+            'last_match': match_ids[-1] if match_ids else None
+        }), 201
+        
     except Exception as e:
         db.session.rollback()
-        print("Error:", e)
-        return jsonify({'success': False, "error": f"Failed to add history: {str(e)}"}), 400
+        print("Error in match_history:", e)
+        return jsonify({'success': False, 'error': str(e)}), 400
+
+
+def process_and_store_match(puuid, match_id, routing_region):
+    """
+    Process a single match and store it in the database.
+    
+    This function handles:
+    1. Checking if we already have this player's stats for this match
+    2. Creating the match record if it doesn't exist
+    3. Creating/updating the participation record
+    
+    Returns True if successful, False otherwise.
+    """
+    try:
+        # Check if we already have this participation
+        existing = MatchParticipant.query.filter_by(
+            puuid=puuid,
+            match_id=match_id
+        ).first()
+        
+        if existing:
+            print(f"Match {match_id} already exists for {puuid}, skipping")
+            return True  # Already have it, consider it a success
+        
+        # Fetch match data from Riot API
+        match_data = get_match_data_from_id(match_id, routing_region)
+        
+        if not match_data or 'info' not in match_data:
+            print(f"No data found for match {match_id}")
+            return False
+        
+        info = match_data['info']
+        
+        # =====================================================================
+        # Step 1: Create or get the Match record
+        # =====================================================================
+        match = Match.query.get(match_id)
+        
+        if not match:
+            match = Match(
+                match_id=match_id,
+                game_mode=info.get('gameMode'),
+                game_type=info.get('gameType'),
+                game_duration=info.get('gameDuration'),
+                game_creation=info.get('gameCreation'),
+                game_version=info.get('gameVersion'),
+                queue_id=info.get('queueId')
+            )
+            db.session.add(match)
+            print(f"Created match record: {match_id}")
+        
+        # =====================================================================
+        # Step 2: Find this player's data in the match
+        # =====================================================================
+        participant_data = None
+        for p in info.get('participants', []):
+            if p.get('puuid') == puuid:
+                participant_data = p
+                break
+        
+        if not participant_data:
+            print(f"Player {puuid} not found in match {match_id}")
+            return False
+        
+        # =====================================================================
+        # Step 3: Create the MatchParticipant record
+        # =====================================================================
+        participation = MatchParticipant(
+            match_id=match_id,
+            puuid=puuid,
+            
+            # Result
+            win=participant_data.get('win'),
+            surrender=participant_data.get('gameEndedInSurrender'),
+            
+            # Champion
+            champ_id=participant_data.get('championId'),
+            champ_name=participant_data.get('championName'),
+            champ_level=participant_data.get('champLevel'),
+            
+            # Position
+            lane=participant_data.get('lane'),
+            role=participant_data.get('role'),
+            
+            # KDA
+            kills=participant_data.get('kills', 0),
+            deaths=participant_data.get('deaths', 0),
+            assists=participant_data.get('assists', 0),
+            first_blood=participant_data.get('firstBloodKill', False),
+            
+            # Economy
+            gold_earned=participant_data.get('goldEarned', 0),
+            total_minions_killed=participant_data.get('totalMinionsKilled', 0),
+            
+            # Items
+            item0=participant_data.get('item0', 0),
+            item1=participant_data.get('item1', 0),
+            item2=participant_data.get('item2', 0),
+            item3=participant_data.get('item3', 0),
+            item4=participant_data.get('item4', 0),
+            item5=participant_data.get('item5', 0),
+            item6=participant_data.get('item6', 0),
+            
+            # Damage dealt
+            total_damage_dealt_to_champions=participant_data.get('totalDamageDealtToChampions', 0),
+            physical_damage_dealt_to_champions=participant_data.get('physicalDamageDealtToChampions', 0),
+            magic_damage_dealt_to_champions=participant_data.get('magicDamageDealtToChampions', 0),
+            true_damage_dealt_to_champions=participant_data.get('trueDamageDealtToChampions', 0),
+            
+            # Damage taken
+            total_damage_taken=participant_data.get('totalDamageTaken', 0),
+            physical_damage_taken=participant_data.get('physicalDamageTaken', 0),
+            magic_damage_taken=participant_data.get('magicDamageTaken', 0),
+            true_damage_taken=participant_data.get('trueDamageTaken', 0),
+            
+            # Utility
+            total_heal=participant_data.get('totalHeal', 0),
+            total_heals_on_teammates=participant_data.get('totalHealsOnTeammates', 0),
+            total_damage_shielded_on_teammates=participant_data.get('totalDamageShieldedOnTeammates', 0),
+            
+            # Vision
+            vision_score=participant_data.get('visionScore', 0),
+            wards_placed=participant_data.get('wardsPlaced', 0),
+            wards_killed=participant_data.get('wardsKilled', 0),
+            
+            # Objectives
+            objectives_stolen=participant_data.get('objectivesStolen', 0)
+        )
+        
+        db.session.add(participation)
+        print(f"Added participation for {puuid} in {match_id}")
+        return True
+        
+    except Exception as e:
+        print(f"Error processing match {match_id}: {e}")
+        return False
 
 
 @app.route('/receive_match_history/<puuid>', methods=['GET'])
 def receive_match_history(puuid):
-    #THIS GETS THE MATCH ID"S OF THE LAST 20 MATCH
-    print('This is the PUUID in receive_match_history: ', puuid)
+    """
+    Get match IDs for a player from our database.
+    
+    NEW DESIGN: Instead of storing match_id1 through match_id20 in columns,
+    we query the match_participants table and return the match IDs.
+    """
     try:
-        user_history = SummonerStats.query.get(puuid)
-        if user_history:
-            return jsonify(user_history.to_dict()), 200
-        else:
-            return jsonify({"error": "User not found"}), 404
+        # Query the last 20 matches, ordered by when we stored them
+        participations = MatchParticipant.query.filter_by(puuid=puuid)\
+            .order_by(MatchParticipant.created_at.desc())\
+            .limit(20)\
+            .all()
+        
+        if not participations:
+            return jsonify({"error": "No match history found for this player"}), 404
+        
+        # Return in the same format the frontend expects
+        # (for backwards compatibility)
+        result = {'puuid': puuid}
+        for i, p in enumerate(participations, 1):
+            result[f'match_id{i}'] = p.match_id
+        
+        return jsonify(result), 200
         
     except Exception as e:
-        return jsonify({"error in pulling user match history from database": str(e)}), 500
+        print(f"Error in receive_match_history: {e}")
+        return jsonify({"error": str(e)}), 500
 
 
 @app.route('/receive_match_stats/<puuid>/<match_id>', methods=['GET'])
 def receive_match_stats(puuid, match_id):
-    #THIS ONLY GETS THE STATS OF SINGLE MATCH
+    """
+    Get stats for a specific player in a specific match.
+    
+    NEW DESIGN: Queries match_participants and joins with matches
+    to get both player stats and match metadata.
+    """
     try:
-        user_history = MatchStats.query.filter_by(puuid=puuid, match_id=match_id).first()
+        # Get the participation record
+        participation = MatchParticipant.query.filter_by(
+            puuid=puuid,
+            match_id=match_id
+        ).first()
         
-        if user_history:
-            return jsonify(user_history.to_dict()), 200
-        else:
-            return jsonify({"error": "User or match not found"}), 404
-                
+        if not participation:
+            return jsonify({"error": "Match stats not found"}), 404
+        
+        # Use the method that includes match data
+        return jsonify(participation.to_dict_with_match()), 200
+        
     except Exception as e:
-        return jsonify({"error": f"Error in pulling user match history from database: {str(e)}"}), 500
+        print(f"Error in receive_match_stats: {e}")
+        return jsonify({"error": str(e)}), 500
 
+
+# =============================================================================
+# NEW ENDPOINTS (Unlocked by proper schema!)
+# =============================================================================
+
+@app.route('/player_stats/<puuid>', methods=['GET'])
+def get_player_stats(puuid):
+    """
+    NEW: Get aggregate statistics for a player.
     
-
-
-#HELPER FUNCTIONS----------------------------------------------------------------------------------------------
-
-def process_match_stats(puuid, match_id):
-    """Checks if match stats exist for match_id. If not, fetches and inserts them."""
+    This was nearly impossible with the old schema - now it's a simple query!
+    """
     try:
-        with db.session.no_autoflush:  # Prevent SQLAlchemy from flushing prematurely
-            existing_entry = MatchStats.query.filter_by(puuid=puuid, match_id=match_id).first()
-
-            if existing_entry:
-                print(f"Skipping match {match_id} - already exists. Updating instead.")
-                match_data = get_match_data_from_id(match_id, 'americas')  # Adjust for region
-                if not match_data:
-                    print(f"Skipping match {match_id} - no stats found.")
-                    return
-                
-                # Process match data
-                match_stats = process_match_json(match_data, puuid)
-
-                # Update existing entry instead of inserting a duplicate
-                for key, value in match_stats.items():
-                    setattr(existing_entry, key, value)
-
-            else:
-                # Fetch match data using Riot API function (get match data by match_id)
-                match_data = get_match_data_from_id(match_id, 'americas')  # Adjust for region
-                
-                if not match_data:
-                    print(f"Skipping match {match_id} - no stats found.")
-                    return
-
-                # Process match data
-                match_stats = process_match_json(match_data, puuid)
-
-                # Insert new match stats
-                new_match_stat = MatchStats(puuid=puuid, match_id=match_id, **match_stats)
-                db.session.add(new_match_stat)
-
-        db.session.commit()  # Commit only once at the end
-        print(f"Match stats processed for {match_id}.")
-
+        participations = MatchParticipant.query.filter_by(puuid=puuid).all()
+        
+        if not participations:
+            return jsonify({"error": "No matches found for this player"}), 404
+        
+        total_games = len(participations)
+        wins = sum(1 for p in participations if p.win)
+        total_kills = sum(p.kills or 0 for p in participations)
+        total_deaths = sum(p.deaths or 0 for p in participations)
+        total_assists = sum(p.assists or 0 for p in participations)
+        
+        return jsonify({
+            'puuid': puuid,
+            'total_games': total_games,
+            'wins': wins,
+            'losses': total_games - wins,
+            'win_rate': round(wins / total_games * 100, 1) if total_games > 0 else 0,
+            'avg_kills': round(total_kills / total_games, 1) if total_games > 0 else 0,
+            'avg_deaths': round(total_deaths / total_games, 1) if total_games > 0 else 0,
+            'avg_assists': round(total_assists / total_games, 1) if total_games > 0 else 0,
+            'kda': round((total_kills + total_assists) / max(total_deaths, 1), 2)
+        }), 200
+        
     except Exception as e:
-        db.session.rollback()
-        print(f"Error processing match {match_id}: {str(e)}")
+        print(f"Error in get_player_stats: {e}")
+        return jsonify({"error": str(e)}), 500
 
+
+@app.route('/champion_stats/<puuid>/<champ_name>', methods=['GET'])
+def get_champion_stats(puuid, champ_name):
+    """
+    NEW: Get a player's stats on a specific champion.
     
+    Example: How well does this player perform on Ahri?
+    """
+    try:
+        participations = MatchParticipant.query.filter_by(
+            puuid=puuid,
+            champ_name=champ_name
+        ).all()
+        
+        if not participations:
+            return jsonify({"error": f"No games found for {champ_name}"}), 404
+        
+        total_games = len(participations)
+        wins = sum(1 for p in participations if p.win)
+        
+        return jsonify({
+            'puuid': puuid,
+            'champion': champ_name,
+            'games_played': total_games,
+            'wins': wins,
+            'losses': total_games - wins,
+            'win_rate': round(wins / total_games * 100, 1) if total_games > 0 else 0,
+            'avg_kills': round(sum(p.kills or 0 for p in participations) / total_games, 1),
+            'avg_deaths': round(sum(p.deaths or 0 for p in participations) / total_games, 1),
+            'avg_assists': round(sum(p.assists or 0 for p in participations) / total_games, 1),
+            'avg_cs': round(sum(p.total_minions_killed or 0 for p in participations) / total_games, 1),
+        }), 200
+        
+    except Exception as e:
+        print(f"Error in get_champion_stats: {e}")
+        return jsonify({"error": str(e)}), 500
 
+
+# =============================================================================
+# RUN THE APP
+# =============================================================================
 
 if __name__ == '__main__':
-    # Run the app in debug mode
     app.run(debug=True)
-

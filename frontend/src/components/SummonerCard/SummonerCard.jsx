@@ -194,8 +194,9 @@ export default function SummonerCard({ data }) {
   }
 
   if (matches){
+    delete matches.puuid;
     Object.values(matches).map((match) => {
-      console.log(match)
+      console.log(match);
     })
   }
   return (

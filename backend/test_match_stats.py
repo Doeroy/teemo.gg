@@ -1,6 +1,6 @@
 from app import app, db
 from models import SummonerStats, MatchStats
-from riot_calls.stats import get_match_data_from_id, process_match_json, get_match_history
+from riot_calls.stats import get_match_data_from_id, process_match_json, retrieve_match_history
 
 # Run inside Flask's application context
 with app.app_context():
@@ -8,7 +8,7 @@ with app.app_context():
         
         #history = ["match1", "match2", "match3", "match4", "match5", "match6", "match7", "match8", "match9", "match10", "match11", "match12", "match13", "match14", "match15", "match16", "match17", "match18", "match19", "match20"]
         real_puuid = "91nxuarDLMu2vrtqvVZ0Y5UFIE5cemvJyffmKX8KNBJiaRCBziDIcO14mEOqpXnAdGZZm-LQB6v7pA"
-        history = get_match_history(real_puuid)
+        history = retrieve_match_history(real_puuid)
         region = "americas"  # Adjust based on your needs
 
         # Check if the record exists

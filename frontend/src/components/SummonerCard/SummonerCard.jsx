@@ -22,7 +22,7 @@ function ChampIconAndLvl({ matchId, puuid }) {
     const getChamp = async () => {
       try {
         const response = await axios.get(
-          `http://localhost:5000/receive_match_stats/${puuid}/${matchId.match_id1}`
+          `http://localhost:5000/receive_match_stats/${puuid}/${matchId}`
         );
         setChampId(response.data.champ_id);
         setLvl(response.data.champ_lvl);
@@ -30,7 +30,7 @@ function ChampIconAndLvl({ matchId, puuid }) {
         console.log("Error fetching users champ:", error);
       }
     };
-    if (matchId?.match_id1) {
+    if (matchId) {
       getChamp();
     }
   }, [matchId, puuid]);
@@ -54,7 +54,7 @@ function ItemGrid({matchId, puuid}) {
   useEffect(() => {
     const getItems = async () => {
       try{
-        const response = await axios.get(`http://localhost:5000/receive_match_stats/${puuid}/${matchId.match_id1}`); //this await makes it so the async function has to wait on the promise from this function to resolve. usually this would return a promise and resolve later
+        const response = await axios.get(`http://localhost:5000/receive_match_stats/${puuid}/${matchId}`); //this await makes it so the async function has to wait on the promise from this function to resolve. usually this would return a promise and resolve later15
         setItems(response.data);
       }catch(err) {
         console.log(err);
@@ -127,7 +127,7 @@ function Kda({ matchId, puuid }) {
     const getKda = async () => {
       try {
         const response = await axios.get(
-          `http://localhost:5000/receive_match_stats/${puuid}/${matchId.match_id1}`
+          `http://localhost:5000/receive_match_stats/${puuid}/${matchId}`
         );
         console.log("KDA: ", response.data);
         setKda(response.data);
@@ -135,7 +135,7 @@ function Kda({ matchId, puuid }) {
         console.log("Error fetching users kda:", error);
       }
     };
-    if (matchId?.match_id1) {
+    if (matchId) {
       getKda();
     }
   }, [matchId, puuid]);
@@ -189,24 +189,31 @@ export default function SummonerCard({ data }) {
     };
     getMatches();
   }, [data.puuid, data.region]);
-
   if (!data || !data.summonerName || !data.icon) {
     return null; // Render nothing if there's no valid data
   }
+
+  if (matches){
+    Object.values(matches).map((match) => {
+      console.log(match)
+    })
+  }
   return (
     <>
-      <SummonerInfo data={data} />
-      <div className={styles.flex}>
+    <SummonerInfo data={data} />
+    {matches && Object.values(matches).map((match) => 
+      <div className={styles.flex} key={match}>
         <div className={styles.cardContainer}>
-          <ChampIconAndLvl matchId={matches} puuid={data.puuid} />
+          <ChampIconAndLvl matchId={match} puuid={data.puuid} />
           <div>
-            <Kda matchId={matches} puuid={data.puuid} />
-            <ItemGrid matchId={matches} puuid={data.puuid} />
+            <Kda matchId={match} puuid={data.puuid} />
+            <ItemGrid matchId={match} puuid={data.puuid} />
           </div>
           <AllyTeam />
           <EnemyTeam />
         </div>
       </div>
+    )}
     </>
   );
 }

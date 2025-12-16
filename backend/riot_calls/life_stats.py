@@ -2,7 +2,7 @@ from stats import *
 
 
 
-breh = get_match_history("X7X-J_Tus9r4DcQSs7wvQr1r-vzzU3sK-iZ9RbzzAYaxgAZpzR3f-HfuvIYkQK-kJoitltvYm6rPUw", 'americas', 0, 20)
+breh = retrieve_match_history("X7X-J_Tus9r4DcQSs7wvQr1r-vzzU3sK-iZ9RbzzAYaxgAZpzR3f-HfuvIYkQK-kJoitltvYm6rPUw", 'americas', 0, 20)
 
 #print(breh)
 

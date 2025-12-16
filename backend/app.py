@@ -226,10 +226,10 @@ def get_match_history():
         if region == 'NA1':
             history = retrieve_match_history(real_puuid)
         
-        elif region == 'EUW1' or 'EUNE1':
+        elif region in ('EUW1' ,'EUNE1'):
             history = retrieve_match_history(real_puuid, 'europe')
 
-        elif region ==  'KR' or 'JP1' or 'VN2':
+        elif region in ('KR', 'JP1', 'VN2'):
             history = retrieve_match_history(real_puuid, 'asia')
 
         else:
@@ -305,8 +305,6 @@ def receive_match_stats(puuid, match_id):
 
 def process_match_stats(puuid, match_id):
     """Checks if match stats exist for match_id. If not, fetches and inserts them."""
-    
-    
     try:
         with db.session.no_autoflush:  # Prevent SQLAlchemy from flushing prematurely
             existing_entry = MatchStats.query.filter_by(puuid=puuid, match_id=match_id).first()

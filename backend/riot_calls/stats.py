@@ -16,8 +16,7 @@ def retrieve_match_history(puuid=None, region='americas', start=0, count= 20):
     response = requests.get(root_url + endpoint + query_params + '&api_key='+ api_key)
     return response.json()
 
-#breh = get_match_history('XuQC9ILJ5989b1BnraT6PvIUUnCT7lTuM8N4itF0wXllxOQkWBi2ByCekmd3BVofFn0McwKgxJUw1g', 'americas', 0, 20)
-
+#breh = retrieve_match_history('X7X-J_Tus9r4DcQSs7wvQr1r-vzzU3sK-iZ9RbzzAYaxgAZpzR3f-HfuvIYkQK-kJoitltvYm6rPUw', 'americas', 0, 20)
 #print(breh)
 
 def get_match_data_from_id(matchId= None, region=None):
@@ -148,8 +147,8 @@ def process_match_json(match_json,puuid):
     #return total_teammate_shielding
 
 
-#filter = process_match_json(game,'XuQC9ILJ5989b1BnraT6PvIUUnCT7lTuM8N4itF0wXllxOQkWBi2ByCekmd3BVofFn0McwKgxJUw1g')
+#filter = process_match_json(game,'X7X-J_Tus9r4DcQSs7wvQr1r-vzzU3sK-iZ9RbzzAYaxgAZpzR3f-HfuvIYkQK-kJoitltvYm6rPUw')
 #print(filter)
 
-#brah = process_match_stats('XuQC9ILJ5989b1BnraT6PvIUUnCT7lTuM8N4itF0wXllxOQkWBi2ByCekmd3BVofFn0McwKgxJUw1g',game)
+#brah = process_match_stats('X7X-J_Tus9r4DcQSs7wvQr1r-vzzU3sK-iZ9RbzzAYaxgAZpzR3f-HfuvIYkQK-kJoitltvYm6rPUw',game)
 #print(brah)

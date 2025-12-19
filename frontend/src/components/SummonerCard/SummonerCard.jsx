@@ -1,6 +1,22 @@
-import React, { useState, useEffect } from "react";
-import styles from "./SummonerCard.module.css";
+import React, { useState, useEffect, use } from "react";
 import axios from "axios";
+
+const VERSION = "15.24.1";
+/*
+Unused CHAMP_MAPPING
+const CHAMP_MAP = {}
+function championMap () {
+  useEffect(() => {
+    const getChampMap = async () => {
+      const getChampNames = await axios.get(`https://ddragon.leagueoflegends.com/cdn/${VERSION}/data/en_US/champion.json`);
+      Object.values(getChampNames.data.data).forEach((champ) => {
+          CHAMP_MAP[champ.key] = champ.id;
+      })
+    }
+    getChampMap()
+  }, [])
+}
+*/
 
 function SummonerInfo({ data }) {
   let lvl = data.level;
@@ -8,70 +24,65 @@ function SummonerInfo({ data }) {
   let icon = `https://raw.communitydragon.org/latest/plugins/rcp-be-lol-game-data/global/default/v1/profile-icons/${data.icon}.jpg`;
   let tag = data.tag_line;
   return (
-    <div>
-      <img src={icon} alt="Summoner Icon" id={styles.summonerIcon}></img>
-      <h5>{`${summonerName}#${tag} Level: ${lvl}`}</h5>
-    </div>
+    <>
+      <div className="w-35 max-w-md">
+        <div className="relative">
+          <img
+            src={icon}
+            alt="Summoner Icon"
+            className="aspect-square w-full object-cover border-3 rounded-lg"
+          />
+          <p className="absolute bottom-30 left-14 bg-black rounded-lg border-3">
+            {lvl}
+          </p>
+        </div>
+      </div>
+      <p>
+        <span className="font-bold">{`${summonerName} `}</span>
+        <span className="text-gray-300 font-medium">{`#${tag}`}</span>
+      </p>
+    </>
   );
 }
 
-function ChampIconAndLvl({ matchId, puuid }) {
-  const [champId, setChampId] = useState("");
-  const [lvl, setLvl] = useState("");
-  useEffect(() => {
-    const getChamp = async () => {
-      try {
-        const response = await axios.get(
-          `http://localhost:5000/receive_match_stats/${puuid}/${matchId}`
-        );
-        setChampId(response.data.champ_id);
-        setLvl(response.data.champ_lvl);
-      } catch (error) {
-        console.log("Error fetching users champ:", error);
-      }
-    };
-    if (matchId) {
-      getChamp();
-    }
-  }, [matchId, puuid]);
-  console.log("champId: ", champId);
-  let championIcon = `https://raw.communitydragon.org/latest/plugins/rcp-be-lol-game-data/global/default/v1/champion-icons/${champId}.png`;
+function ChampIconAndLvl({ champName, level }) {
+  let championIcon = `https://ddragon.leagueoflegends.com/cdn/${VERSION}/img/champion/${champName}.png`;
   return (
-    <div className={styles.championIconContainer}>
+    <div className="relative">
       <img
         src={championIcon}
         alt="Champion Icon"
-        className={styles.championIcon}
-      ></img>
-      <div className={styles.champAndLvl}>{lvl}</div>
+        className="w-13 sm:w-14 md:w-16 lg:w-18 rounded-2xl"
+      />
+      <div className="absolute bottom-0 bg-black rounded-lg w-5 text-sm">
+        {level}
+      </div>
     </div>
   );
 }
 
-function ItemGrid({matchId, puuid}) {
-  const [items, setItems] = useState();
-  console.log('item grid: ', matchId)
-  useEffect(() => {
-    const getItems = async () => {
-      try{
-        const response = await axios.get(`http://localhost:5000/receive_match_stats/${puuid}/${matchId}`); //this await makes it so the async function has to wait on the promise from this function to resolve. usually this would return a promise and resolve later15
-        setItems(response.data);
-      }catch(err) {
-        console.log(err);
-      }
-    }
-    getItems();
-  }, [puuid, matchId]);
-
+function ItemGrid({ data }) {
   return (
-    <div className={styles.itemsGrid}>
-      {[0, 1, 2, 3, 4, 5, 6].map((i) => (
-        <div key={i} className={styles.items}>
-          {items && items[`item${i}`] !== 0 && (
+    <div className="grid grid-cols-4 grid-rows-2 gap-1">
+      <img
+        src={`https://ddragon.leagueoflegends.com/cdn/15.24.1/img/item/${
+          data[`item${6}`]
+        }.png`}
+        alt={`item ${6}`}
+        className="col-start-4 col-end-4 row-start-1 row-end-1 h-10 rounded-lg"
+      />
+      {[0, 1, 2, 3, 4, 5].map((i) => (
+        <div key={i}>
+          {data && data[`item${i}`] !== 0 ? (
             <img
-              src={`https://ddragon.leagueoflegends.com/cdn/15.24.1/img/item/${items[`item${i}`]}.png`}
+              src={`https://ddragon.leagueoflegends.com/cdn/15.24.1/img/item/${
+                data[`item${i}`]
+              }.png`}
               alt={`item ${i}`}
+              className="h-10 rounded-lg"
             />
+          ) : (
+            <div className="h-10 rounded-lg bg-white"> </div>
           )}
         </div>
       ))}
@@ -79,28 +90,7 @@ function ItemGrid({matchId, puuid}) {
   );
 }
 
-function AllyTeam() {
-  let summonerIcon =
-    "https://raw.communitydragon.org/latest/plugins/rcp-be-lol-game-data/global/default/v1/profile-icons/3150.jpg";
-  return (
-    <div className={styles.allyTeam}>
-      <div>
-        <img
-          src={summonerIcon}
-          alt="Summoner Icon"
-          className={styles.miniIcon}
-        ></img>
-        <span>Hai</span>
-      </div>
-      <img src={summonerIcon} alt="Summoner Icon" className={styles.miniIcon} />
-      <img src={summonerIcon} alt="Summoner Icon" className={styles.miniIcon} />
-      <img src={summonerIcon} alt="Summoner Icon" className={styles.miniIcon} />
-      <img src={summonerIcon} alt="Summoner Icon" className={styles.miniIcon} />
-    </div>
-  );
-}
-
-function EnemyTeam() {
+function Team() {
   let summonerIcon =
     "https://raw.communitydragon.org/latest/plugins/rcp-be-lol-game-data/global/default/v1/profile-icons/3150.jpg";
   return (
@@ -121,40 +111,32 @@ function EnemyTeam() {
   );
 }
 
-function Kda({ matchId, puuid }) {
-  const [kda, setKda] = useState("");
-  useEffect(() => {
-    const getKda = async () => {
-      try {
-        const response = await axios.get(
-          `http://localhost:5000/receive_match_stats/${puuid}/${matchId}`
-        );
-        console.log("KDA: ", response.data);
-        setKda(response.data);
-      } catch (error) {
-        console.log("Error fetching users kda:", error);
-      }
-    };
-    if (matchId) {
-      getKda();
-    }
-  }, [matchId, puuid]);
-  console.log(kda);
-  const csScore = kda.total_minions_killed / (kda.game_duration / 60);
+function Kda({ stats }) {
+  const csScore = stats.total_minions_killed / (stats.game_duration / 60);
   return (
-    <div className={styles.kdaSection}>
-      <p className={styles.font}>
-        <span className={styles.kills}>{kda.kills}</span>/
-        <span className={styles.deaths}>{kda.deaths}</span>/
-        <span>{kda.assists}</span>
+    <div>
+      <p>
+        <span>
+          {stats.kills}
+        </span> 
+        / 
+        <span className="text-red-500">
+          {stats.deaths}
+        </span> 
+        / 
+        <span>
+          {stats.assists}
+        </span>
       </p>
       <p className="text-sm">
-        KDA: {((kda.kills + kda.assists) / kda.deaths).toFixed(2)}
+        KDA: {((stats.kills + stats.assists) / stats.deaths).toFixed(2)}
       </p>
       <p className="text-sm">
-        CS: {kda.total_minions_killed} ({csScore.toFixed(1)})
+        CS: {stats.total_minions_killed} ({csScore.toFixed(1)})
       </p>
-      <p className="text-sm">Vision Score: {kda.vision_score}</p>
+      <p className="text-sm">
+        Vision Score: {stats.vision_score}
+      </p>
     </div>
   );
 }
@@ -164,18 +146,15 @@ export default function SummonerCard({ data }) {
   const [matches, setMatches] = useState();
   console.log("data: ", data);
   console.log(`data.puuid: ${data.puuid} data.region: ${data.region}`);
-
   useEffect(() => {
     const getMatches = async () => {
       try {
-        // First, post to fetch and store match history
         const post_response = await axios.post(
           `http://localhost:5000/match_history`,
           { puuid: data.puuid, region: data.region }
         );
         console.log("Post response:", post_response.data);
 
-        // Then, get the stored match history
         const get_response = await axios.get(
           `http://localhost:5000/receive_match_history/${data.puuid}`
         );
@@ -193,28 +172,60 @@ export default function SummonerCard({ data }) {
     return null; // Render nothing if there's no valid data
   }
 
-  if (matches){
+  if (matches) {
     delete matches.puuid;
-    Object.values(matches).map((match) => {
-      console.log(match);
-    })
   }
   return (
-    <>
-    <SummonerInfo data={data} />
-    {matches && Object.values(matches).map((match) => 
-      <div className={styles.flex} key={match}>
-        <div className={styles.cardContainer}>
-          <ChampIconAndLvl matchId={match} puuid={data.puuid} />
-          <div>
-            <Kda matchId={match} puuid={data.puuid} />
-            <ItemGrid matchId={match} puuid={data.puuid} />
-          </div>
-          <AllyTeam />
-          <EnemyTeam />
-        </div>
+    <div className="h-full">
+      {matches &&
+        Object.values(matches).map((match) => (
+          <MatchesSection matchId={match} puuid={data.puuid} />
+        ))}
+    </div>
+  );
+}
+
+function MatchesSection({ matchId, puuid }) {
+  const [stats, setStats] = useState(null);
+  const [loading, setLoading] = useState(true);
+  useEffect(() => {
+    const getChamp = async () => {
+      try {
+        const response = await axios.get(
+          `http://localhost:5000/receive_match_stats/${puuid}/${matchId}`
+        );
+        console.log("HERE : ", response);
+        setStats(response.data);
+      } catch (error) {
+        console.log("Error fetching users champ:", error);
+        setError(error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    if (matchId && puuid) {
+      getChamp();
+    }
+  }, [matchId, puuid]);
+
+  if (loading) {
+    return (
+      <div className="h-full bg-slate-900 animate-pulse">
+        <div className="w-16 h-16 bg-slate-800 rounded-lg"></div>
       </div>
-    )}
-    </>
+    );
+  }
+
+  if (!stats) {
+    return;
+  }
+
+  
+  return (
+    <div className={stats.win ? 'bg-blue-400 m-4' : 'bg-red-400 m-4'}>
+      <ChampIconAndLvl champName={stats.champ_name} level={stats.champ_level} />
+      <ItemGrid data={stats} />
+      <Kda stats={stats} />
+    </div>
   );
 }

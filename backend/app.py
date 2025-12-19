@@ -96,7 +96,6 @@ def search():
 def search_and_add_summoner():
     """
     Search for a summoner via Riot API and save/update them in our database.
-    
     Flow:
     1. Get puuid from Riot Account API
     2. Get profile info from Riot Summoner API
@@ -503,82 +502,6 @@ def receive_match_stats(puuid, match_id):
         print(f"Error in receive_match_stats: {e}")
         return jsonify({"error": str(e)}), 500
 
-
-# =============================================================================
-# NEW ENDPOINTS (Unlocked by proper schema!)
-# =============================================================================
-
-@app.route('/player_stats/<puuid>', methods=['GET'])
-def get_player_stats(puuid):
-    """
-    NEW: Get aggregate statistics for a player.
-    
-    This was nearly impossible with the old schema - now it's a simple query!
-    """
-    try:
-        participations = MatchParticipant.query.filter_by(puuid=puuid).all()
-        
-        if not participations:
-            return jsonify({"error": "No matches found for this player"}), 404
-        
-        total_games = len(participations)
-        wins = sum(1 for p in participations if p.win)
-        total_kills = sum(p.kills or 0 for p in participations)
-        total_deaths = sum(p.deaths or 0 for p in participations)
-        total_assists = sum(p.assists or 0 for p in participations)
-        
-        return jsonify({
-            'puuid': puuid,
-            'total_games': total_games,
-            'wins': wins,
-            'losses': total_games - wins,
-            'win_rate': round(wins / total_games * 100, 1) if total_games > 0 else 0,
-            'avg_kills': round(total_kills / total_games, 1) if total_games > 0 else 0,
-            'avg_deaths': round(total_deaths / total_games, 1) if total_games > 0 else 0,
-            'avg_assists': round(total_assists / total_games, 1) if total_games > 0 else 0,
-            'kda': round((total_kills + total_assists) / max(total_deaths, 1), 2)
-        }), 200
-        
-    except Exception as e:
-        print(f"Error in get_player_stats: {e}")
-        return jsonify({"error": str(e)}), 500
-
-
-@app.route('/champion_stats/<puuid>/<champ_name>', methods=['GET'])
-def get_champion_stats(puuid, champ_name):
-    """
-    NEW: Get a player's stats on a specific champion.
-    
-    Example: How well does this player perform on Ahri?
-    """
-    try:
-        participations = MatchParticipant.query.filter_by(
-            puuid=puuid,
-            champ_name=champ_name
-        ).all()
-        
-        if not participations:
-            return jsonify({"error": f"No games found for {champ_name}"}), 404
-        
-        total_games = len(participations)
-        wins = sum(1 for p in participations if p.win)
-        
-        return jsonify({
-            'puuid': puuid,
-            'champion': champ_name,
-            'games_played': total_games,
-            'wins': wins,
-            'losses': total_games - wins,
-            'win_rate': round(wins / total_games * 100, 1) if total_games > 0 else 0,
-            'avg_kills': round(sum(p.kills or 0 for p in participations) / total_games, 1),
-            'avg_deaths': round(sum(p.deaths or 0 for p in participations) / total_games, 1),
-            'avg_assists': round(sum(p.assists or 0 for p in participations) / total_games, 1),
-            'avg_cs': round(sum(p.total_minions_killed or 0 for p in participations) / total_games, 1),
-        }), 200
-        
-    except Exception as e:
-        print(f"Error in get_champion_stats: {e}")
-        return jsonify({"error": str(e)}), 500
 
 
 # =============================================================================

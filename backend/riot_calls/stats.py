@@ -107,6 +107,7 @@ def process_match_json(match_json,puuid):
     #you can get bans with pick orders with teams variable.
 
     match_data = {
+    "patch_version" : patch_version,
     "game_mode" : game_mode,
     "win": win,
     "kills": kills,

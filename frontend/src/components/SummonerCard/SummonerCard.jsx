@@ -172,9 +172,7 @@ export default function SummonerCard({ data }) {
     return null; // Render nothing if there's no valid data
   }
 
-  if (matches) {
-    delete matches.puuid;
-  }
+  console.log('matches: ', matches)
   return (
     <div className="h-full">
       {matches &&

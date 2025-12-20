@@ -130,11 +130,15 @@ class MatchParticipant(db.Model):
     puuid = db.Column(db.String(100), db.ForeignKey('summoners.puuid'), nullable=False)
     
     # ==========================================================================
+    # GAME METADATA- These link to the other tables
+    # ==========================================================================
+    game_creation = db.Column(db.Integer, default=0)
+    # ==========================================================================
     # GAME RESULT
     # ==========================================================================
     win = db.Column(db.Boolean)                    # True = won, False = lost
     surrender = db.Column(db.Boolean)              # Did the game end in surrender?
-    
+    early_surrender = db.Column(db.Boolean)
     # ==========================================================================
     # CHAMPION INFO
     # ==========================================================================

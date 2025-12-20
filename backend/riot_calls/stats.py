@@ -16,7 +16,7 @@ def retrieve_match_history(puuid=None, region='americas', start=0, count= 20):
     response = requests.get(root_url + endpoint + query_params + '&api_key='+ api_key)
     return response.json()
 
-#breh = retrieve_match_history('X7X-J_Tus9r4DcQSs7wvQr1r-vzzU3sK-iZ9RbzzAYaxgAZpzR3f-HfuvIYkQK-kJoitltvYm6rPUw', 'americas', 0, 20)
+breh = retrieve_match_history('X7X-J_Tus9r4DcQSs7wvQr1r-vzzU3sK-iZ9RbzzAYaxgAZpzR3f-HfuvIYkQK-kJoitltvYm6rPUw', 'americas', 0, 20)
 #print(breh)
 
 def get_match_data_from_id(matchId= None, region=None):
@@ -28,7 +28,7 @@ def get_match_data_from_id(matchId= None, region=None):
 
     return response.json()
 
-#game = get_match_data_from_id(breh[0], 'americas')
+game = get_match_data_from_id(breh[0], 'americas')
 
 #print(game)
 
@@ -107,6 +107,7 @@ def process_match_json(match_json,puuid):
     #you can get bans with pick orders with teams variable.
 
     match_data = {
+    #"players": players,
     "patch_version" : patch_version,
     "game_mode" : game_mode,
     "win": win,
@@ -142,14 +143,16 @@ def process_match_json(match_json,puuid):
     "vision_score": vision_score,
     "wards_placed": wards_placed,
     "wards_killed": wards_killed,
-    "surrender": surrender
+    "surrender": surrender,
+    "game_creation": game_creation,
+    "early_surrender": early_surrender
 }
     return match_data
     #return total_teammate_shielding
 
 
-#filter = process_match_json(game,'X7X-J_Tus9r4DcQSs7wvQr1r-vzzU3sK-iZ9RbzzAYaxgAZpzR3f-HfuvIYkQK-kJoitltvYm6rPUw')
-#print(filter)
+filter = process_match_json(game,'X7X-J_Tus9r4DcQSs7wvQr1r-vzzU3sK-iZ9RbzzAYaxgAZpzR3f-HfuvIYkQK-kJoitltvYm6rPUw')
+print(filter)
 
 #brah = process_match_stats('X7X-J_Tus9r4DcQSs7wvQr1r-vzzU3sK-iZ9RbzzAYaxgAZpzR3f-HfuvIYkQK-kJoitltvYm6rPUw',game)
 #print(brah)

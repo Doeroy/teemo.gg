@@ -34,7 +34,7 @@ db.init_app(app)
 
 
 # =============================================================================
-# UTILITY FUNCTIONS
+# HELPER FUNCTIONS
 # =============================================================================
 
 def get_routing_region(region):
@@ -73,7 +73,7 @@ def test_db():
 @app.route('/search', methods=['POST'])
 def search():
     """
-    Quick search - just gets puuid from Riot API without saving to database.
+    Quick search - gets puuid from Riot API without saving to database.
     Use this for autocomplete/validation before full search.
     """
     data = request.get_json()
@@ -456,20 +456,22 @@ def receive_match_history(puuid):
     """
     try:
         # Query the last 20 matches, ordered by when we stored them
-        participations = MatchParticipant.query.filter_by(puuid=puuid)\
-            .order_by(MatchParticipant.created_at.desc())\
-            .limit(20)\
-            .all()
+        participations = db.session.query(MatchParticipant)\
+        .filter(MatchParticipant.puuid == puuid)\
+        .order_by(MatchParticipant.match_id.desc())\
+        .all()
         
+
         if not participations:
             return jsonify({"error": "No match history found for this player"}), 404
         
         # Return in the same format the frontend expects
         # (for backwards compatibility)
-        result = {'puuid': puuid}
+        result = {}
         for i, p in enumerate(participations, 1):
             result[f'match_id{i}'] = p.match_id
         
+        print(result)
         return jsonify(result), 200
         
     except Exception as e:

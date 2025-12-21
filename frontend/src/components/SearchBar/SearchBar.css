@@ -1,3 +1,10 @@
+body{
+  background: no-repeat  center url('/public/images/miss_fortune.jpg');
+  background-repeat: no-repeat;
+  background-size: cover;
+  transition: background-image 1s ease-in-out;
+}
+
 .search-main {
   display: flex;
   flex-direction: column;
@@ -5,7 +12,6 @@
   align-items: center;
   height: 100vh;
   color: aliceblue;
-  text-shadow: black 2px 4px 4px;
   font-size: 20px;
   text-align: center;
 }

@@ -132,7 +132,7 @@ class MatchParticipant(db.Model):
     # ==========================================================================
     # GAME METADATA- These link to the other tables
     # ==========================================================================
-    game_creation = db.Column(db.Integer, default=0)
+    game_creation = db.Column(db.BigInteger, default=0)
     # ==========================================================================
     # GAME RESULT
     # ==========================================================================
@@ -159,7 +159,13 @@ class MatchParticipant(db.Model):
     deaths = db.Column(db.Integer, default=0)
     assists = db.Column(db.Integer, default=0)
     first_blood = db.Column(db.Boolean, default=False)
-    
+
+    # ==========================================================================
+    # SUMMONER SPELLS
+    # ==========================================================================
+    summoner_spell_1 = db.Column(db.Integer, default=0)
+    summoner_spell_2 = db.Column(db.Integer, default=0)
+
     # ==========================================================================
     # ECONOMY
     # ==========================================================================
@@ -271,6 +277,10 @@ class MatchParticipant(db.Model):
             'wards_placed': self.wards_placed,
             'wards_killed': self.wards_killed,
             'objectives_stolen': self.objectives_stolen,
+            'summoner_spell_1': self.summoner_spell_1,
+            'summoner_spell_2': self.summoner_spell_2,
+            'early_surrender': self.early_surrender,
+            'game_creation': self.game_creation,
         }
     
     def to_dict_with_match(self):

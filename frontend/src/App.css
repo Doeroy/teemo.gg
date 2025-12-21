@@ -1,16 +1,4 @@
 @import "tailwindcss";
 
-* {
-  box-sizing: border-box;
-  margin: 0px;
-  padding: 0px; 
-}
-
-body{
-  background: no-repeat  center url('/public/images/miss_fortune.jpg');
-  background-repeat: no-repeat;
-  background-size: cover;
-  transition: background-image 1s ease-in-out;
-}
 
 

@@ -2,12 +2,15 @@ import './SearchBar.css';
 import React, {useState} from 'react'
 import {FaSearch} from "react-icons/fa"
 import axios from 'axios';
+import { useNavigate } from 'react-router-dom';
 
 export default function SearchBar({ setSummonerData }) {
     const [searchText, setSearchText] = useState("");
     const [region, setRegion] = useState("NA1")
     const [status, setStatus] = useState('Idle')
     const [loading, setLoading] = useState(false)
+    const navigate = useNavigate();
+
     //[isLoading, setIsLoading] = useState(false);
 
     //const onSearch = async () => {
@@ -69,6 +72,7 @@ export default function SearchBar({ setSummonerData }) {
       setSummonerData(()=>(response.data))
       setStatus('Found')
       console.log('This is the add_result: ', response.data)
+      return {region: response.data.region, nameTag: response.data.summonerName + response.data.tag_line}
       }catch(error){ //error object that gets thrown if anything in the try block fails
         if(error.response && error.response.status === 404){ //sometimes we don't get an error.response so we need to check for it so the if statement doesn't break
           try{
@@ -102,75 +106,76 @@ export default function SearchBar({ setSummonerData }) {
       }
   }
 
-  function isEnter(event){
-    const riotInfo = {
-      summonerID: searchText,
-      riot_id: "",
-      riot_tag: "",
-      region: "",
-      puuid: ""
-    };
-      if(event.key === "Enter"){
-        const splitId = searchText.split('#').map(i => i.trim());
-        riotInfo.summonerID = splitId[0];
-        riotInfo.riot_tag = splitId[1];
-        riotInfo.region = region;
-        riotInfo.riot_id = ''
-        riotInfo.puuid = "balls" // temporary dummy value
-        console.log(typeof(riotInfo.riot_tag))
-        if(riotInfo.summonerID === '' || riotInfo.summonerID === undefined){
-          alert("Please type in your summoner name");
-          return;
-        }
-        else if(!isAlphanumericName(riotInfo.summonerID) || riotInfo.summonerID.length < 3  || riotInfo.summonerID.length > 16){
-          alert("Summoner ID (Game Name) must be between 3-16 alphanumeric characters");
-          return;
-        }
-        else if(riotInfo.riot_tag === '' || riotInfo.riot_tag === undefined){
-          alert('Please type in your tagline');
-          return;
-        }
-        else if(!isAlphanumericTag(riotInfo.riot_tag) || riotInfo.riot_tag.length < 3 || riotInfo.riot_tag.length > 5){
-          alert("Tagline must be between 3-5 alphanumeric characters");
-          return;
-        }
-        else{
-          setStatus('Loading')
-          fetchData(riotInfo)
-        }
+async function isEnter(event){
+  const riotInfo = {
+    summonerID: searchText,
+    riot_id: "",
+    riot_tag: "",
+    region: "",
+    puuid: ""
+  };
+    if(event.key === "Enter"){
+      const splitId = searchText.split('#').map(i => i.trim());
+      riotInfo.summonerID = splitId[0];
+      riotInfo.riot_tag = splitId[1];
+      riotInfo.region = region;
+      riotInfo.riot_id = ''
+      riotInfo.puuid = "balls" // temporary dummy value
+      console.log(typeof(riotInfo.riot_tag))
+      if(riotInfo.summonerID === '' || riotInfo.summonerID === undefined){
+        alert("Please type in your summoner name");
+        return;
       }
-  }
-
-    return (
-        <div className = "search-container">
-          <div className = "input-wrapper">
-            <form>
-              {/* when you handle an event, React gives you back an event object. The event contains
-                the element that was changed and the current value of that element
-              */}
-              <select name = "region-dropdown" value={region} onChange={(e) => setRegion(e.target.value)}>
-                <option value="NA1">NA</option>
-                <option value="EUW1">EUW</option>
-                <option value="EUNE1">EUN</option>
-                <option value="KR">KR</option>
-                <option value="JP1">JP</option>
-                <option value="OC1">OCE</option>
-                <option value="VN2">VN</option>
-              </select>
-            </form> 
-            <input disabled = {loading} type="text" 
-            value = {searchText} 
-            name = "search" 
-            onKeyDown = {isEnter} 
-            onChange = {e => handleChange(e.target.value)} 
-            placeholder= "Game Name + Tag" 
-            size = "50" 
-            className="search-bar">
-            </input>
-            <FaSearch id="search-icon"/>  
-            </div>
-            <p>{status}</p>  {/*delete this later*/} 
-        </div>
-      
-    );
-  }
+      else if(!isAlphanumericName(riotInfo.summonerID) || riotInfo.summonerID.length < 3  || riotInfo.summonerID.length > 16){
+        alert("Summoner ID (Game Name) must be between 3-16 alphanumeric characters");
+        return;
+      }
+      else if(riotInfo.riot_tag === '' || riotInfo.riot_tag === undefined){
+        alert('Please type in your tagline');
+        return;
+      }
+      else if(!isAlphanumericTag(riotInfo.riot_tag) || riotInfo.riot_tag.length < 3 || riotInfo.riot_tag.length > 5){
+        alert("Tagline must be between 3-5 alphanumeric characters");
+        return;
+      }
+      else{
+        setStatus('Loading')
+        const response = await fetchData(riotInfo)
+        navigate(`/summoners/${response.region}/${response.nameTag}`)
+      }
+    }
+}
+return(
+  <div className = "search-main">
+      <div className = "search-container">
+        <div className = "input-wrapper">
+          <form>
+            {/* when you handle an event, React gives you back an event object. The event contains
+              the element that was changed and the current value of that element
+            */}
+            <select name = "region-dropdown" value={region} onChange={(e) => setRegion(e.target.value)}>
+              <option value="NA1">NA</option>
+              <option value="EUW1">EUW</option>
+              <option value="EUNE1">EUN</option>
+              <option value="KR">KR</option>
+              <option value="JP1">JP</option>
+              <option value="OC1">OCE</option>
+              <option value="VN2">VN</option>
+            </select>
+          </form> 
+          <input disabled = {loading} type="text" 
+          value = {searchText} 
+          name = "search" 
+          onKeyDown = {isEnter} 
+          onChange = {e => handleChange(e.target.value)} 
+          placeholder= "Game Name + Tag" 
+          size = "50" 
+          className="search-bar">
+          </input>
+          <FaSearch id="search-icon"/>  
+          </div>
+          <p>{status}</p>  {/*delete this later*/} 
+      </div>
+  </div>
+  );
+}

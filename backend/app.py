@@ -434,7 +434,12 @@ def process_and_store_match(puuid, match_id, routing_region):
             wards_killed=participant_data.get('wardsKilled', 0),
             
             # Objectives
-            objectives_stolen=participant_data.get('objectivesStolen', 0)
+            objectives_stolen=participant_data.get('objectivesStolen', 0),
+            early_surrender=participant_data.get('gameEndedInEarlySurrender'),
+
+            game_creation=info.get('gameCreation'),
+            summoner_spell_1=participant_data.get('summoner1Id', 0),
+            summoner_spell_2=participant_data.get('summoner2Id', 0)
         )
         
         db.session.add(participation)
@@ -469,7 +474,7 @@ def receive_match_history(puuid):
         # (for backwards compatibility)
         result = {}
         for i, p in enumerate(participations, 1):
-            result[f'match_id{i}'] = p.match_id
+            result[f'match_id{i}'] = [p.match_id, p.game_creation]
         
         print(result)
         return jsonify(result), 200
@@ -497,9 +502,13 @@ def receive_match_stats(puuid, match_id):
         if not participation:
             return jsonify({"error": "Match stats not found"}), 404
         
-        # Use the method that includes match data
-        return jsonify(participation.to_dict_with_match()), 200
+        result = participation.to_dict_with_match()
+        if participation.match:
+            result['game_duration'] = participation.match.game_duration
+            result['queue_id'] = participation.match.queue_id
         
+        return jsonify(result), 200
+
     except Exception as e:
         print(f"Error in receive_match_stats: {e}")
         return jsonify({"error": str(e)}), 500

@@ -28,7 +28,7 @@ def get_match_data_from_id(matchId= None, region=None):
 
     return response.json()
 
-game = get_match_data_from_id(breh[0], 'americas')
+#game = get_match_data_from_id(breh[0], 'americas')
 
 #print(game)
 
@@ -145,14 +145,16 @@ def process_match_json(match_json,puuid):
     "wards_killed": wards_killed,
     "surrender": surrender,
     "game_creation": game_creation,
-    "early_surrender": early_surrender
+    "early_surrender": early_surrender,
+    "summoner1Id": summoner1_id,
+    "summoner2Id": summoner2_id,
 }
     return match_data
     #return total_teammate_shielding
 
 
-filter = process_match_json(game,'X7X-J_Tus9r4DcQSs7wvQr1r-vzzU3sK-iZ9RbzzAYaxgAZpzR3f-HfuvIYkQK-kJoitltvYm6rPUw')
-print(filter)
+#filter = process_match_json(game,'X7X-J_Tus9r4DcQSs7wvQr1r-vzzU3sK-iZ9RbzzAYaxgAZpzR3f-HfuvIYkQK-kJoitltvYm6rPUw')
+#print(filter)
 
 #brah = process_match_stats('X7X-J_Tus9r4DcQSs7wvQr1r-vzzU3sK-iZ9RbzzAYaxgAZpzR3f-HfuvIYkQK-kJoitltvYm6rPUw',game)
 #print(brah)

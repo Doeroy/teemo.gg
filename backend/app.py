@@ -195,7 +195,7 @@ def retrieve_summoner_info():
     If found, also fetches fresh profile data from Riot API.
     """
     try:
-        summoner_name = request.args.get('summonerID')
+        summoner_name = request.args.get('summoner_name')
         tag_line = request.args.get('riot_tag')
         print(f'Looking up summoner: {summoner_name}#{tag_line}')
         

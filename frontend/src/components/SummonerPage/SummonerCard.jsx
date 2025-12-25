@@ -1,6 +1,5 @@
 import React, { useState, useEffect, use } from "react";
 import axios from "axios";
-
 const VERSION = "15.24.1";
 
 const SUMMONER_SPELLS = {}
@@ -27,32 +26,6 @@ const QUEUE_NAMES = {
   1700: "Arena",
 };
 
-function SummonerInfo({ data }) {
-  let lvl = data.level;
-  let summonerName = data.summonerName;
-  let icon = `https://raw.communitydragon.org/latest/plugins/rcp-be-lol-game-data/global/default/v1/profile-icons/${data.icon}.jpg`;
-  let tag = data.tag_line;
-  return (
-    <>
-      <div className="w-35 max-w-md">
-        <div className="relative">
-          <img
-            src={icon}
-            alt="Summoner Icon"
-            className="aspect-square w-full object-cover border-3 rounded-lg"
-          />
-          <p className="absolute bottom-30 left-14 bg-black rounded-lg border-3">
-            {lvl}
-          </p>
-        </div>
-      </div>
-      <p>
-        <span className="font-bold">{`${summonerName} `}</span>
-        <span className="text-gray-300 font-medium">{`#${tag}`}</span>
-      </p>
-    </>
-  );
-}
 
 function ChampIconAndLvl({ champName, level }) {
   const championIcon = `https://ddragon.leagueoflegends.com/cdn/${VERSION}/img/champion/${champName}.png`;
@@ -280,7 +253,7 @@ export default function SummonerCard({ data }) {
   return (
     <div className="h-full">
       {matches &&
-        Object.values(matches).sort((matchA, matchB) => matchB[1] - matchA).map((match) => (
+        Object.values(matches).sort((matchA, matchB) => matchB[1] - matchA[1]).map((match) => (
           <MatchesSection matchId={match[0]} puuid={data.puuid} key={match}/>
         ))}
     </div>

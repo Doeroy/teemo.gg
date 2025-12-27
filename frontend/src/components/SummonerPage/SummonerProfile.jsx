@@ -7,7 +7,7 @@ export default function SummonerInfo({ data }) {
   let tag = data.tag_line;
   return (
     <>
-      <div className="w-30 m-4">
+      <div className="w-30">
         <div className="relative">
           <p className="absolute bottom-25 left-11.5 bg-black text-white rounded-lg border-3 border-black">
             {lvl}
@@ -17,6 +17,7 @@ export default function SummonerInfo({ data }) {
             alt="Summoner Icon"
             className="aspect-square w-full object-cover border-3 border-black rounded-lg"
           />
+
         </div>
         <p className="text-center">
             <span className="font-bold text-black">{`${summonerName}`}</span>

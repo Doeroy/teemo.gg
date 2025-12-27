@@ -362,90 +362,107 @@ def process_and_store_match(puuid, match_id, routing_region):
         # =====================================================================
         # Step 2: Find this player's data in the match
         # =====================================================================
-        participant_data = None
-        for p in info.get('participants', []):
-            if p.get('puuid') == puuid:
-                participant_data = p
-                break
-        
-        if not participant_data:
-            print(f"Player {puuid} not found in match {match_id}")
-            return False
+        for participant in info.get('participants', []):
+            player_puuid = participant.get('puuid')
+            existing = MatchParticipant.query.filter_by(
+                match_id=match_id,
+                puuid=player_puuid
+            ).first()
+            if existing:
+                continue
+            if not Summoner.query.get(player_puuid):
+                new_summoner = Summoner(
+                    puuid=player_puuid,
+                    summoner_id=participant.get('summonerId', ''),
+                    riot_name=participant.get('riotIdGameName', 'Unknown'),
+                    riot_tag=participant.get('riotIdTagline', '???'),
+                    region=routing_region,
+                    profile_icon_id=participant.get('profileIcon', 0),
+                    summoner_level=participant.get('summonerLevel', 0)
+                )
+                db.session.add(new_summoner)
+                db.session.flush()  # ← Commit the summoner before adding participant
         
         # =====================================================================
         # Step 3: Create the MatchParticipant record
         # =====================================================================
-        participation = MatchParticipant(
-            match_id=match_id,
-            puuid=puuid,
-            
-            # Result
-            win=participant_data.get('win'),
-            surrender=participant_data.get('gameEndedInSurrender'),
-            
-            # Champion
-            champ_id=participant_data.get('championId'),
-            champ_name=participant_data.get('championName'),
-            champ_level=participant_data.get('champLevel'),
-            
-            # Position
-            lane=participant_data.get('lane'),
-            role=participant_data.get('role'),
-            
-            # KDA
-            kills=participant_data.get('kills', 0),
-            deaths=participant_data.get('deaths', 0),
-            assists=participant_data.get('assists', 0),
-            first_blood=participant_data.get('firstBloodKill', False),
-            
-            # Economy
-            gold_earned=participant_data.get('goldEarned', 0),
-            total_minions_killed=participant_data.get('totalMinionsKilled', 0),
-            
-            # Items
-            item0=participant_data.get('item0', 0),
-            item1=participant_data.get('item1', 0),
-            item2=participant_data.get('item2', 0),
-            item3=participant_data.get('item3', 0),
-            item4=participant_data.get('item4', 0),
-            item5=participant_data.get('item5', 0),
-            item6=participant_data.get('item6', 0),
-            
-            # Damage dealt
-            total_damage_dealt_to_champions=participant_data.get('totalDamageDealtToChampions', 0),
-            physical_damage_dealt_to_champions=participant_data.get('physicalDamageDealtToChampions', 0),
-            magic_damage_dealt_to_champions=participant_data.get('magicDamageDealtToChampions', 0),
-            true_damage_dealt_to_champions=participant_data.get('trueDamageDealtToChampions', 0),
-            
-            # Damage taken
-            total_damage_taken=participant_data.get('totalDamageTaken', 0),
-            physical_damage_taken=participant_data.get('physicalDamageTaken', 0),
-            magic_damage_taken=participant_data.get('magicDamageTaken', 0),
-            true_damage_taken=participant_data.get('trueDamageTaken', 0),
-            
-            # Utility
-            total_heal=participant_data.get('totalHeal', 0),
-            total_heals_on_teammates=participant_data.get('totalHealsOnTeammates', 0),
-            total_damage_shielded_on_teammates=participant_data.get('totalDamageShieldedOnTeammates', 0),
-            
-            # Vision
-            vision_score=participant_data.get('visionScore', 0),
-            wards_placed=participant_data.get('wardsPlaced', 0),
-            wards_killed=participant_data.get('wardsKilled', 0),
-            
-            # Objectives
-            objectives_stolen=participant_data.get('objectivesStolen', 0),
-            early_surrender=participant_data.get('gameEndedInEarlySurrender'),
+        
+        players_match_info = info["participants"]
+        for participant_data in players_match_info:
+            participation = MatchParticipant(
+                match_id=match_id,
+                puuid=participant_data.get('puuid'),
+                
+                # Result
+                win=participant_data.get('win'),
+                surrender=participant_data.get('gameEndedInSurrender'),
+                
+                # Champion
+                champ_id=participant_data.get('championId'),
+                champ_name=participant_data.get('championName'),
+                champ_level=participant_data.get('champLevel'),
+                
+                # Position
+                lane=participant_data.get('lane'),
+                role=participant_data.get('role'),
+                team_id=participant_data.get('teamId'),
+                
+                # KDA
+                kills=participant_data.get('kills', 0),
+                deaths=participant_data.get('deaths', 0),
+                assists=participant_data.get('assists', 0),
+                first_blood=participant_data.get('firstBloodKill', False),
+                
+                # Economy
+                gold_earned=participant_data.get('goldEarned', 0),
+                total_minions_killed=participant_data.get('totalMinionsKilled', 0),
+                
+                # Items
+                item0=participant_data.get('item0', 0),
+                item1=participant_data.get('item1', 0),
+                item2=participant_data.get('item2', 0),
+                item3=participant_data.get('item3', 0),
+                item4=participant_data.get('item4', 0),
+                item5=participant_data.get('item5', 0),
+                item6=participant_data.get('item6', 0),
+                
+                # Damage dealt
+                total_damage_dealt_to_champions=participant_data.get('totalDamageDealtToChampions', 0),
+                physical_damage_dealt_to_champions=participant_data.get('physicalDamageDealtToChampions', 0),
+                magic_damage_dealt_to_champions=participant_data.get('magicDamageDealtToChampions', 0),
+                true_damage_dealt_to_champions=participant_data.get('trueDamageDealtToChampions', 0),
+                
+                # Damage taken
+                total_damage_taken=participant_data.get('totalDamageTaken', 0),
+                physical_damage_taken=participant_data.get('physicalDamageTaken', 0),
+                magic_damage_taken=participant_data.get('magicDamageTaken', 0),
+                true_damage_taken=participant_data.get('trueDamageTaken', 0),
+                
+                # Utility
+                total_heal=participant_data.get('totalHeal', 0),
+                total_heals_on_teammates=participant_data.get('totalHealsOnTeammates', 0),
+                total_damage_shielded_on_teammates=participant_data.get('totalDamageShieldedOnTeammates', 0),
+                
+                # Vision
+                vision_score=participant_data.get('visionScore', 0),
+                wards_placed=participant_data.get('wardsPlaced', 0),
+                wards_killed=participant_data.get('wardsKilled', 0),
+                
+                # Objectives
+                objectives_stolen=participant_data.get('objectivesStolen', 0),
+                early_surrender=participant_data.get('gameEndedInEarlySurrender'),
 
-            game_creation=info.get('gameCreation'),
-            summoner_spell_1=participant_data.get('summoner1Id', 0),
-            summoner_spell_2=participant_data.get('summoner2Id', 0)
-        )
-        
-        db.session.add(participation)
-        print(f"Added participation for {puuid} in {match_id}")
+                game_creation=info.get('gameCreation'),
+                summoner_spell_1=participant_data.get('summoner1Id', 0),
+                summoner_spell_2=participant_data.get('summoner2Id', 0)
+                )
+            db.session.add(participation)
+            print(f"Added participation for {participant_data.get('puuid')} in {match_id}")
+
         return True
-        
+    except ValueError as e:
+        print(f"Validation error: {e}")
+        return False   
     except Exception as e:
         print(f"Error processing match {match_id}: {e}")
         return False
@@ -506,13 +523,49 @@ def receive_match_stats(puuid, match_id):
         if participation.match:
             result['game_duration'] = participation.match.game_duration
             result['queue_id'] = participation.match.queue_id
+
+        all_participants = MatchParticipant.query.filter_by(match_id=match_id).all()
+        
+        blue_team = []
+        red_team = []
+        
+        for p in all_participants:
+            summoner = Summoner.query.get(p.puuid)
+            
+            player_data = {
+                'puuid': p.puuid,
+                'summoner_name': summoner.riot_name if summoner else 'Unknown',
+                'summoner_tag': summoner.riot_tag if summoner else '???',
+                'summoner_region': summoner.region if summoner else 'Unknown',
+                'champ_name': p.champ_name,
+                'champ_id': p.champ_id,
+                'kills': p.kills,
+                'deaths': p.deaths,
+                'assists': p.assists,
+                'gold_earned': p.gold_earned,
+                'total_minions_killed': p.total_minions_killed,
+                'total_damage_taken': p.total_damage_taken,
+                'vision_score': p.vision_score,
+                'summoner_spell_1': p.summoner_spell_1,
+                'summoner_spell_2': p.summoner_spell_2,
+                'total_damage_dealt_to_champions': p.total_damage_dealt_to_champions,
+                'items': [p.item0, p.item1, p.item2, p.item3, p.item4, p.item5, p.item6],
+            }
+            
+            if p.team_id == 100:
+                blue_team.append(player_data)
+            else:
+                red_team.append(player_data)
+        
+        # Add teams to response
+        result['blue_team'] = blue_team
+        result['red_team'] = red_team
         
         return jsonify(result), 200
-
+        
     except Exception as e:
         print(f"Error in receive_match_stats: {e}")
         return jsonify({"error": str(e)}), 500
-
 
 
 # =============================================================================

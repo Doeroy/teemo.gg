@@ -151,6 +151,7 @@ class MatchParticipant(db.Model):
     # ==========================================================================
     lane = db.Column(db.String(20))                # TOP, JUNGLE, MIDDLE, BOTTOM, UTILITY
     role = db.Column(db.String(20))                # SOLO, NONE, CARRY, SUPPORT
+    team_id = db.Column(db.Integer)                # 100 = Blue, 200 = Red
     
     # ==========================================================================
     # KDA & COMBAT

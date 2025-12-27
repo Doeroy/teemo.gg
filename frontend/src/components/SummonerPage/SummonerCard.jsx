@@ -30,11 +30,11 @@ const QUEUE_NAMES = {
 function ChampIconAndLvl({ champName, level }) {
   const championIcon = `https://ddragon.leagueoflegends.com/cdn/${VERSION}/img/champion/${champName}.png`;
   return (
-    <div className="relative">
+    <div className="relative w-15 sm:w-15 lg:w-18">
       <img
         src={championIcon}
         alt="Champion Icon"
-        className="w-13 sm:w-14 md:w-16 lg:w-18 rounded-2xl"
+        className="w-15 sm:w-14 md:w-16 lg:w-18 rounded-2xl"
       />
       <div className="absolute bottom-0 bg-black rounded-lg w-5 text-sm text-white text-center">
         {level}
@@ -103,7 +103,7 @@ function MatchInfo({data}){
   const timeSeconds = (data.game_duration % 60)
 
   return(
-    <div>
+    <div className="text-center w-20 mx-3">
       <p>{QUEUE_NAMES[data.queue_id]}</p>
       <hr></hr>
       <p>{`${timeMinutes}:${timeSeconds.toString().padStart(2, '0')}`}</p>
@@ -111,23 +111,19 @@ function MatchInfo({data}){
     </div>
   )
 }
-function Team() {
-  let summonerIcon =
-    "https://raw.communitydragon.org/latest/plugins/rcp-be-lol-game-data/global/default/v1/profile-icons/3150.jpg";
+function Team({team}) {
   return (
-    <div className={styles.enemyTeam}>
-      <div>
+    <div>
+      {team && team.map((member) =>
+      (<div className="flex">
         <img
-          src={summonerIcon}
+          src={`https://ddragon.leagueoflegends.com/cdn/${VERSION}/img/champion/${member.champ_name}.png`}
           alt="Summoner Icon"
-          className={styles.miniIcon}
+          className="h-6"
         ></img>
-        <span>Daniel</span>
+        <span>{member.summoner_name}</span>
       </div>
-      <img src={summonerIcon} alt="Summoner Icon" className={styles.miniIcon} />
-      <img src={summonerIcon} alt="Summoner Icon" className={styles.miniIcon} />
-      <img src={summonerIcon} alt="Summoner Icon" className={styles.miniIcon} />
-      <img src={summonerIcon} alt="Summoner Icon" className={styles.miniIcon} />
+      ))}
     </div>
   );
 }
@@ -137,7 +133,7 @@ function Kda({ stats }) {
   return (
     <div>
       <p>
-        <span className="font-bold">
+        <span className="font-bold text-white">
           {stats.kills}
         </span> 
         / 
@@ -145,7 +141,7 @@ function Kda({ stats }) {
           {stats.deaths}
         </span> 
         / 
-        <span className="font-bold">
+        <span className="font-bold text-white">
           {stats.assists}
         </span>
       </p>
@@ -212,6 +208,8 @@ function MatchesSection({ matchId, puuid }) {
       </div>
       <Kda stats={stats} />
       <ItemGrid data={stats} />
+      <Team team={stats.blue_team}/>
+      <Team team={stats.red_team}/>
     </div>
   );
 }
@@ -237,7 +235,7 @@ export default function SummonerCard({ data }) {
 
         setMatches(get_response.data);
         console.log("Match Data: ", get_response.data);
-      } catch (error) {
+      } catch (error) {y
         console.log("Error fetching users data:", error);
       }
     };
@@ -251,7 +249,7 @@ export default function SummonerCard({ data }) {
   
   console.log('matches: ', matches)
   return (
-    <div className="h-full">
+    <div className="h-full w-200">
       {matches &&
         Object.values(matches).sort((matchA, matchB) => matchB[1] - matchA[1]).map((match) => (
           <MatchesSection matchId={match[0]} puuid={data.puuid} key={match}/>

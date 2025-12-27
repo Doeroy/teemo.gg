@@ -22,10 +22,14 @@ function SummonerPage(){
         getSummoner();
     }, [region, summonerName])
     return(
-        <>
-            <SummonerInfo data={data}/>
-            <SummonerCard data={data}/>
-        </>
+        <div className="bg-[url('../../../public/images/ashe.png')] min-h-screen bg-cover bg-center bg-no-repeat bg-fixed p-4">
+            <div>
+                <SummonerInfo data={data}/>
+            </div>
+            <div className="flex justify-center">
+                <SummonerCard data={data}/>
+            </div>
+        </div>
     )
 }
 

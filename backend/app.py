@@ -42,11 +42,11 @@ def get_routing_region(region):
     Convert server region to Riot API routing region.
     Riot has regional routing for match-v5 endpoints.
     """
-    if region == 'NA1':
+    if region.upper() == 'NA1':
         return 'americas'
-    elif region in ('EUW1', 'EUNE1'):
+    elif region.upper() in ('EUW1', 'EUNE1'):
         return 'europe'
-    elif region in ('KR', 'JP1', 'VN2'):
+    elif region.upper() in ('KR', 'JP1', 'VN2'):
         return 'asia'
     else:
         return 'sea'
@@ -107,16 +107,16 @@ def search_and_add_summoner():
         print("Incoming data:", data)
         
         # Validate required fields
-        required_fields = ['summonerID', 'riot_id', 'riot_tag', 'puuid', 'region']
+        required_fields = ['riot_name', 'riot_tag', 'region']
         if not all(key in data for key in required_fields):
             return jsonify({"error": "Missing data in request!"}), 400
         
-        summoner_name = data['summonerID']
-        tag_line = data['riot_tag']
+        riot_name = data['riot_name']
+        riot_tag = data['riot_tag']
         region = data['region']
         
         # Step 1: Get puuid from Riot API
-        real_puuid = get_puuid(gameName=summoner_name, tagLine=tag_line)
+        real_puuid = get_puuid(gameName=riot_name, tagLine=riot_tag)
         if real_puuid == 0:
             return jsonify({'success': False, 'error': 'not_found'}), 404
         
@@ -124,7 +124,7 @@ def search_and_add_summoner():
         
         # Step 2: Get summoner profile from Riot API
         s_dict = get_summoner_info(real_puuid, region)
-        
+        print(s_dict)
         if 'status' in s_dict:
             return jsonify({
                 'success': False,
@@ -137,7 +137,6 @@ def search_and_add_summoner():
             summoner_id = get_summoner_id_from_puuid(real_puuid, region)
             if not summoner_id:
                 summoner_id = "unknown"
-        
         # Step 3: Insert or update summoner in database
         # =====================================================================
         # This is called an "UPSERT" - insert if new, update if exists
@@ -147,25 +146,25 @@ def search_and_add_summoner():
         if existing_summoner:
             # Update existing summoner
             existing_summoner.summoner_id = summoner_id
-            existing_summoner.riot_name = summoner_name
-            existing_summoner.riot_tag = tag_line
+            existing_summoner.riot_name = riot_name
+            existing_summoner.riot_tag = riot_tag
             existing_summoner.region = region
             existing_summoner.profile_icon_id = s_dict.get('profileIconId', 0)
             existing_summoner.summoner_level = s_dict.get('summonerLevel', 1)
-            print(f"Updated existing summoner: {summoner_name}#{tag_line}")
+            print(f"Updated existing summoner: {riot_name}#{riot_tag}")
         else:
             # Create new summoner
             new_summoner = Summoner(
                 puuid=real_puuid,
                 summoner_id=summoner_id,
-                riot_name=summoner_name,
-                riot_tag=tag_line,
+                riot_name=riot_name,
+                riot_tag=riot_tag,
                 region=region,
                 profile_icon_id=s_dict.get('profileIconId', 0),
                 summoner_level=s_dict.get('summonerLevel', 1)
             )
             db.session.add(new_summoner)
-            print(f"Added new summoner: {summoner_name}#{tag_line}")
+            print(f"Added new summoner: {riot_name}#{riot_tag}")
         
         db.session.commit()
         
@@ -178,8 +177,8 @@ def search_and_add_summoner():
             'region': region,
             'icon': s_dict.get('profileIconId', 0),
             'level': s_dict.get('summonerLevel', 1),
-            'summonerName': summoner_name,
-            'tag_line': tag_line
+            'summonerName': riot_name,
+            'tag_line': riot_tag
         })
         
     except Exception as e:
@@ -235,7 +234,7 @@ def retrieve_summoner_info():
         
     except Exception as e:
         print("Error:", e)
-        return jsonify({"error": f"Failed to retrieve summoner: {str(e)}"}), 400
+        return jsonify({"error": f"Failed to retrieve summoner: {str(e)}"}), 404
 
 
 @app.route('/summoners', methods=['GET'])
@@ -389,6 +388,15 @@ def process_and_store_match(puuid, match_id, routing_region):
         
         players_match_info = info["participants"]
         for participant_data in players_match_info:
+            # Skip if this participant already exists
+            player_puuid = participant_data.get('puuid')
+            existing_participant = MatchParticipant.query.filter_by(
+                match_id=match_id,
+                puuid=player_puuid
+            ).first()
+            if existing_participant:
+                continue  # Already stored, skip
+            
             participation = MatchParticipant(
                 match_id=match_id,
                 puuid=participant_data.get('puuid'),

@@ -7,18 +7,22 @@ const regions = [
   {
     region: "NA",
     code: "us",
+    platform: "na1"
   },
   {
     region: "KR",
     code: "kr",
+    platform: "kr"
   },
   {
     region: "JP",
     code: "jp",
+    platform: "jp1"
   },
   {
     region: "VN",
     code: "vn",
+    platform: "vn2"
   },
 ];
 
@@ -27,6 +31,7 @@ const SearchBar = () => {
   const [region, setRegion] = useState("NA");
   const [regionCode, setRegionCode] = useState("us");
   const [dropDown, setDropDown] = useState(false);
+  const [regionPlatform, setRegionPlatform] = useState("na1")
   const [error, setError] = useState("");
   const navigate = useNavigate();
 
@@ -61,7 +66,7 @@ const SearchBar = () => {
               const nameTag = nameSeperate(search);
               if (nameTag.error === false) {
                 const encodedName = encodeURIComponent(`${nameTag.name.trim()}#${nameTag.tag}`);
-                navigate(`/summoners/${region}/${encodedName}`);
+                navigate(`/summoners/${regionPlatform}/${encodedName}`);
               } else {
                 setError(
                   "Please enter a valid summoner name (EX: Player#NA1)"
@@ -80,6 +85,7 @@ const SearchBar = () => {
                 onClick={() => {
                   setRegion(region.region);
                   setRegionCode(region.code);
+                  setRegionPlatform(region.regionPlatform)
                   setDropDown(false);
                 }}
               >

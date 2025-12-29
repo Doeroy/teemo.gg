@@ -15,3 +15,12 @@ export function nameSeperate(str) {
     return { error: true };
 }
 
+export function getMainPlatform(region) {
+  const mapping = {
+    'americas': 'na1',
+    'europe': 'euw1',
+    'asia': 'kr',
+    'sea': 'oc1'
+  };
+  return mapping[region.toLowerCase()];
+}
